@@ -56,4 +56,11 @@ class VendaController extends Controller
         $venda = $this->vendasService->findById($id);
         return response()->json($venda, 200);
     }
+
+    public  function findByUser(Request $request, string $user_id):JsonResponse
+    {
+        $vendas = $this->vendasService->findByUser($user_id);
+        return response()->json($vendas, 200);
+
+    }
 }

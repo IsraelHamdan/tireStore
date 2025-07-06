@@ -9,10 +9,17 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\ValidationException;
 use Symfony\Component\HttpKernel\Exception\HttpException;
+use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
 
 class VendasService
 {
+    private UserService $userService;
+    public function __construct(UserService $userService)
+    {
+        $this->userService = $userService;
+    }
+
     public  function createVenda(CreateVendaDTO $dto): Venda
     {
         try {
@@ -67,12 +74,34 @@ class VendasService
     {
         try {
             return Venda::all()->toArray();
-        } catch (HttpException $e) {}
+        } catch (HttpException $e) {
+            throw new HttpException($e->getCode(), "{$e->getMessage()}", "{$e->getPrevious()}");
+        }
     }
 
     public function findById(string $id): Venda
     {
         return Venda::findOrFail($id);
 
+    }
+
+        /**
+         * Encontra todas as vendas de um usuário específico.
+         *
+         * @param string $user_id O ID do usuário.
+         * @return \Illuminate\Database\Eloquent\Collection Retorna uma coleção de vendas.
+         * @throws NotFoundHttpException Se o usuário não for encontrado.
+         */
+
+    public function findByUser(string $user_id): \Illuminate\Database\Eloquent\Collection
+    {
+        try {
+            $user = $this->userService->findById($user_id);
+            return Venda::where('user_id', $user_id)->get();
+        } catch (NotFoundHttpException $e) {
+            throw new NotFoundHttpException("{$e->getMessage()}", $e->getCode());
+        } catch (QueryException $e) {
+            throw new HttpException($e->getCode(), "{$e->getMessage()}", );
+        }
     }
 }
