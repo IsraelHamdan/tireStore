@@ -55,16 +55,22 @@ class ProductController extends Controller
         return response()->json($products, 200);
     }
 
-    public function updateProduct(Request $request, string $id):JsonResponse
+    public function updateProduct(Request $request, string $id): JsonResponse
     {
-        echo $request->name;
         $validated = $request->validate([
-            'name'=> 'sometimes|string|max:255',
-            'valor'=> 'sometimes|numeric'
+            'name'  => 'sometimes|string|max:255',
+            'valor' => 'sometimes|numeric',
         ]);
 
-        $updateData = $this->productService->updateProduct($id, (array) $validated);
-        return response()->json($updateData, 200);
+
+        $dto = new UpdateProductDTO(
+            $validated['name'] ?? null,
+            $validated['valor'] ?? null
+        );
+
+        $updatedProduct = $this->productService->updateProduct($id, $dto);
+
+        return response()->json($updatedProduct, 200);
     }
 
     public function deleteProduct(Request $request, string $id):JsonResponse

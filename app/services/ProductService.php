@@ -4,6 +4,7 @@ namespace App\services;
 
 use App\DTOs\Product\CreateProductDTO;
 use App\DTOs\Product\ProductResponseDTO;
+use App\DTOs\Product\UpdateProductDTO;
 use App\Models\Produto;
 use Illuminate\Database\QueryException;
 
@@ -16,29 +17,31 @@ use Illuminate\Validation\ValidationException;
 class ProductService
 {
     /**
+     * @param CreateProductDTO | UpdateProductDTO $data
+     * @return array
      * @throws ValidationException
      */
+
+    private function validateProduct(CreateProductDTO | UpdateProductDTO $dto):array
+    {
+        $data = array_filter(get_object_vars($dto), fn($value) => !is_null($value));
+        $ruleType = ($dto instanceof CreateProductDTO) ? 'required' : 'sometimes|required';
+        $rules = [
+            'name' => $ruleType . '|string|max:255',
+            'valor' => $ruleType . '|numeric',
+        ];
+        $validator = Validator::make($data, $rules);
+        if($validator->fails()) throw  new ValidationException($validator);
+        return $validator->validated();
+    }
+
+
     public function create(CreateProductDTO $dto): Produto
     {
         try {
-            $data = get_object_vars($dto);
-            $validator = Validator::make($data, [
-                'name' => ['required', 'string', 'max:255'],
-                'valor' => ['required', 'numeric'],
-            ]);
-            if ($validator->fails()) {
-                throw new ValidationException($validator);
-            }
+            $validatedData = $this->validateProduct($dto);
 
-            $product = Produto::create($validator->validated());
-            Log::info('Product created', [
-                'id' => $product->id,
-                'name' => $product->name,
-                'valor'=> $product->valor,
-                'created_at' => $product->created_at,
-                'updated_at' => $product->updated_at,
-            ]);
-            return $product;
+            return Produto::create($validatedData);
         } catch (QueryException $e) {
             Log::error('Erro ao criar produto', [
                 'message' => $e->getMessage(),
@@ -49,6 +52,7 @@ class ProductService
             }
 
             throw $e;
+        } catch (ValidationException $e) {
         }
     }
 
@@ -71,11 +75,17 @@ class ProductService
 
     }
 
-    public function updateProduct(string $id, array $data): Produto
+    public function updateProduct(string $id, UpdateProductDTO $data): Produto
     {
-        $product = $this->findById($id);
-        $product->update($data);
-        return $product;
+        try {
+            $validatedData = $this->validateProduct($data);
+            $product = $this->findById($id);
+            $product->update($validatedData);
+            return $product;
+        } catch (ValidationException $e) {
+            throw new HttpException($e->getCode(), 'Internal server error', $e->getPrevious());
+        }
+
     }
 
     public function deleteProduct(string $id): void
