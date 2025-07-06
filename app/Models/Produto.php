@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Notifications\Notifiable;
@@ -22,8 +23,9 @@ use Illuminate\Notifications\Notifiable;
  */
 class Produto extends Model
 {
-    use HasFactory, Notifiable;
+    use HasFactory, Notifiable, HasUuids;
 
+    protected $primaryKey = 'id';
     public $incrementing = false;
     protected $keyType = 'string';
     protected $table = 'produtos';
@@ -33,7 +35,6 @@ class Produto extends Model
         'valor',
     ];
 
-    protected $primaryKey = 'id';
     public $timestamps = true;
 
     protected $casts = [

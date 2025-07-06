@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\DTOs\Product\CreateProductDTO;
 
+use App\Models\Produto;
 use App\services\ProductService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -35,6 +36,12 @@ class ProductController extends Controller
         );
         $productResponse = $this->productService->create($dto);
         return response()->json($productResponse, 201);
+    }
+
+    public function findById(Request $request, string $id):JsonResponse
+    {
+        $product = $this->productService->findById($id);
+        return response()->json($product, 200);
     }
 
 }
