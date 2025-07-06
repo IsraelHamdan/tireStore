@@ -3,6 +3,7 @@
 namespace App\services;
 
 use App\DTOs\CreateVendaDTO;
+use App\DTOs\Vendas\UpdateVendaDTO;
 use App\Models\Venda;
 use Illuminate\Database\QueryException;
 use Illuminate\Support\Facades\Log;
@@ -10,50 +11,48 @@ use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\ValidationException;
 use Symfony\Component\HttpKernel\Exception\HttpException;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
-
+use Illuminate\Database\Eloquent\Collection;
 
 class VendasService
 {
-    private UserService $userService;
-    public function __construct(UserService $userService)
+    /**
+     * Valida os dados de uma venda para criação ou atualização.
+     *
+     * @param CreateVendaDTO|UpdateVendaDTO $data
+     * @return array Os dados validados.
+     * @throws ValidationException
+     */
+
+    private function validateVenda(CreateVendaDTO |UpdateVendaDTO $dto):array
     {
-        $this->userService = $userService;
+        $data = array_filter(get_object_vars($dto), fn($value) => !is_null($value));
+        $ruleType = ($dto instanceof CreateVendaDTO) ? 'required' : 'sometimes|required';
+
+        $rules = [
+            'produto_id' => $ruleType . '|string|exists:produtos,id',
+            'user_id' => $ruleType . '|string|exists:users,id',
+            'valor_total' => $ruleType . '|numeric|min:0',
+            'qtd_produto' => $ruleType . '|integer|min:1',
+            'pagamento' => $ruleType . '|string',
+            'parcelas' => $ruleType . '|integer|min:0',
+            'vencimento_parcelas' => $ruleType . '|array',
+            'vencimento_parcelas.*' => 'required_with:vencimento_parcelas|date_format:d/m/Y'
+
+        ];
+
+
+        $validator = Validator::make($data, $rules);
+
+        if($validator->fails()) throw  new ValidationException($validator);
+        return $validator->validated();
     }
 
     public  function createVenda(CreateVendaDTO $dto): Venda
     {
         try {
-            $data = get_object_vars($dto);
+            $validatedData = $this->validateVenda($dto);
 
-            $validator = Validator::make($data, [
-                'produto_id' => ['required', 'string', 'exists:produtos,id'],
-                'user_id' => ['required', 'string', 'exists:users,id'],
-                'valor_total' => ['required', 'numeric', 'min:0'],
-                'qtd_produto' => ['required', 'integer', 'min:0'],
-                'pagamento' => ['required', 'string'],
-                'parcelas'=> ['required', 'integer', 'min:0'],
-                'vencimento_parcelas'=> ['required', 'array'],
-                'vencimento_parcelas.*' => ['required', 'date_format:d/m/Y']
-            ]);
-
-            if($validator->fails()) {
-                throw new ValidationException($validator);
-            }
-
-            $venda = Venda::create($validator->validated());;
-
-            Log::info('Venda criada', [
-                'id' => $venda->id,
-                'user_id' => $venda->user_id,
-                'product_id' => $venda->product_id,
-                'valor_total' => $venda->valor_total,
-                'qtd_produto' => $venda->qtd_produto,
-                'pagamento' => $venda->pagamento,
-                'parcelas'=> $venda->parcelas,
-                'vencimento_parcelas'=> $venda->vencimento_parcelas,
-                'created_at' => $venda->created_at,
-                'updated_at' => $venda->updated_at,
-            ]);
+            $venda = Venda::create($validatedData);;
 
             return $venda;
         } catch (QueryException $e) {
@@ -93,10 +92,9 @@ class VendasService
          * @throws NotFoundHttpException Se o usuário não for encontrado.
          */
 
-    public function findByUser(string $user_id): \Illuminate\Database\Eloquent\Collection
+    public function findByUser(string $user_id): Collection
     {
         try {
-            $user = $this->userService->findById($user_id);
             return Venda::where('user_id', $user_id)->get();
         } catch (NotFoundHttpException $e) {
             throw new NotFoundHttpException("{$e->getMessage()}", $e->getCode());
@@ -104,4 +102,34 @@ class VendasService
             throw new HttpException($e->getCode(), "{$e->getMessage()}", );
         }
     }
+
+    public function updateVenda(string $id, UpdateVendaDTO $data): Venda
+    {
+        try {
+            $venda = $this->findById($id);
+
+            $validatedData = $this->validateVenda($data);
+            if(empty($validatedData)) return $venda;
+
+            $venda->update($validatedData);
+            return $venda;
+        } catch (QueryException $e) {
+            throw new HttpException($e->getCode(), "{$e->getMessage()}", "{$e->getPrevious()}");
+
+        } catch (NotFoundHttpException $e) {
+            throw new NotFoundHttpException("{$e->getMessage()}", $e->getCode());
+        }
+
+    }
+
+    public function deleteVenda(string $id): void
+    {
+        try {
+            $venda = $this->findById($id);
+            $venda = Venda::destroy($id);;
+        } catch (QueryException $e) {
+            throw new HttpException($e->getCode(), "{$e->getMessage()}", "{$e->getPrevious()}");
+        }
+    }
+
 }

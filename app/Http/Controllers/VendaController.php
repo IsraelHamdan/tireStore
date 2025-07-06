@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\DTOs\CreateVendaDTO;
+use App\DTOs\Vendas\UpdateVendaDTO;
 use App\services\VendasService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -62,5 +63,27 @@ class VendaController extends Controller
         $vendas = $this->vendasService->findByUser($user_id);
         return response()->json($vendas, 200);
 
+    }
+
+    public function updateVenda(Request $request, string $id):JsonResponse
+    {
+        $dto = new UpdateVendaDTO(
+            produto_id: $request->input('produto_id'),
+            user_id: $request->input('user_id'),
+            valor_total: (float) $request->input('valor_total'),
+            qtd_produto: (int) $request->input('qtd_produto'),
+            pagamento: $request->input('pagamento'),
+            parcelas: (int) $request->input('parcelas'),
+            vencimento_parcelas: $request->input('vencimento_parcelas')
+        );
+
+        $venda = $this->vendasService->updateVenda($id, $dto);
+        return response()->json($venda, 200);
+    }
+
+    public function deleteVenda(Request $request, string $id):JsonResponse
+    {
+        $venda = $this->vendasService->deleteVenda($id);
+        return response()->json($venda, 200);
     }
 }

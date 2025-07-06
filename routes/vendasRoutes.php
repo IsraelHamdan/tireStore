@@ -8,4 +8,6 @@ Route::prefix('vendas')->group(function () {
     Route::get('/findAll', [VendaController::class, 'findAll']);
     Route::get('/findById/{id}', [VendaController::class, 'findById']);
     Route::get('/findByUser/{id}', [VendaController::class, 'findByUser']);
+    Route::patch('/updateVenda/{id}', [VendaController::class, 'updateVenda']);
+    Route::delete('/deleteVenda/{id}', [VendaController::class, 'deleteVenda']);
 });
