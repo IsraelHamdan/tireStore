@@ -5,8 +5,7 @@ namespace App\DTOs\Product;
 class UpdateProductDTO
 {
     public  function  __construct(
-
-        public ?string $nome,
+        public ?string $name,
         public ?float $valor,
     )
     {}

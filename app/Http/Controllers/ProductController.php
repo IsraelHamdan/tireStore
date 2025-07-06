@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\DTOs\Product\CreateProductDTO;
 
+use App\DTOs\Product\UpdateProductDTO;
 use App\Models\Produto;
 use App\services\ProductService;
 use Illuminate\Http\JsonResponse;
@@ -44,4 +45,21 @@ class ProductController extends Controller
         return response()->json($product, 200);
     }
 
+    public function findAll(Request $request):JsonResponse
+    {
+        $products = $this->productService->findAll();
+        return response()->json($products, 200);
+    }
+
+    public function updateProduct(Request $request, string $id):JsonResponse
+    {
+        echo $request->name;
+        $validated = $request->validate([
+            'name'=> 'sometimes|string|max:255',
+            'valor'=> 'sometimes|numeric'
+        ]);
+
+        $updateData = $this->productService->updateProduct($id, (array) $validated);
+        return response()->json($updateData, 200);
+    }
 }

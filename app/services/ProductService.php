@@ -11,6 +11,7 @@ use Illuminate\Database\QueryException;
 use Illuminate\Support\Facades\Log;
 use Symfony\Component\HttpKernel\Exception\HttpException;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
+use function PHPUnit\Framework\throwException;
 
 class ProductService
 {
@@ -47,5 +48,24 @@ class ProductService
         return Produto::findOrFail($id);
     }
 
+    public function findAll(): array
+    {
+        try {
+            return Produto::all()->toArray();
 
+        } catch (NotFoundHttpException $e) {
+            throw new NotFoundHttpException('Products not found');
+        } catch (QueryException $e) {
+            Log::error('Erro ao buscar produtos', [], $e->getMessage());
+            throw new HttpException($e->getCode(), 'Internal server error', $e->getPrevious());
+        }
+
+    }
+
+    public function updateProduct(string $id, array $data): Produto
+    {
+        $product = $this->findById($id);
+        $product->update($data);
+        return $product;
+    }
 }
