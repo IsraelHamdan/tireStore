@@ -85,8 +85,7 @@ class UserService
     public function searchByName(string $nome): array
     {
         try {
-            $user = $this->userRepository->searchByName($nome);
-            return Helpers::fromUserModelArray($user);
+            return $this->userRepository->searchByName($nome);
         } catch (NotFoundHttpException $exception) {
             throw new HttpException('404', 'User not found');
         } catch (QueryException $e) {

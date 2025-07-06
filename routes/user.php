@@ -9,5 +9,5 @@ Route::prefix('user')->group(function () {
     Route::patch('/find/{id}', [UserController::class, 'updateUser']);
     Route::delete('/{id}', [UserController::class, 'deleteUser']);
     Route::get('/findAll', [UserController::class, 'findAll']);
-    Route::get('/users/busca', [UserController::class, 'searchByName']);
+    Route::get('/findByName/{name}', [UserController::class, 'searchByName']);
 });

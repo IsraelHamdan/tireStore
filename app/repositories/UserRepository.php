@@ -36,7 +36,7 @@ class UserRepository
 
     public function searchByName(string $name): array
     {
-        $user =User::where('name', 'ILIKE', "%$name%")->get()->all();
+        $user =User::where('name', 'ILIKE', "%$name%")->get();
         return $user->map(fn($user) => Helpers::fromUserModel($user))->all();
     }
 
