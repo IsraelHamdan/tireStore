@@ -10,6 +10,7 @@ use App\services\ProductService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Validation\ValidationException;
 
 class ProductController extends Controller
 {
@@ -19,6 +20,9 @@ class ProductController extends Controller
         $this->productService = $productService;
     }
 
+    /**
+     * @throws ValidationException
+     */
     public  function createProduct(Request $request): JsonResponse
     {
         Log::info('Product creation request received', [

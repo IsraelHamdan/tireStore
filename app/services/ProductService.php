@@ -5,23 +5,32 @@ namespace App\services;
 use App\DTOs\Product\CreateProductDTO;
 use App\DTOs\Product\ProductResponseDTO;
 use App\Models\Produto;
-use App\repositories\ProductRepository;
 use Illuminate\Database\QueryException;
 
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Validator;
 use Symfony\Component\HttpKernel\Exception\HttpException;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
-use function PHPUnit\Framework\throwException;
+use Illuminate\Validation\ValidationException;
 
 class ProductService
 {
+    /**
+     * @throws ValidationException
+     */
     public function create(CreateProductDTO $dto): Produto
     {
         try {
-            $product = Produto::create([
-                'name' => $dto->name,
-                'valor' => $dto->valor,
+            $data = get_object_vars($dto);
+            $validator = Validator::make($data, [
+                'name' => ['required', 'string', 'max:255'],
+                'valor' => ['required', 'numeric'],
             ]);
+            if ($validator->fails()) {
+                throw new ValidationException($validator);
+            }
+
+            $product = Produto::create($validator->validated());
             Log::info('Product created', [
                 'id' => $product->id,
                 'name' => $product->name,

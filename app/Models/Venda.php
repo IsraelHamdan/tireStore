@@ -5,7 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 
 /**
- * 
+ *
  *
  * @property int $id
  * @property \Illuminate\Support\Carbon|null $created_at
@@ -24,5 +24,33 @@ use Illuminate\Database\Eloquent\Model;
  */
 class Venda extends Model
 {
-    //
+    public $incrementing = false;
+    protected $keyType = 'string';
+    protected $table = 'vendas';
+    protected $fillable = [
+        'parcelas',
+        'vencimento_parcelas',
+        'valor_total',
+        'qtd_produto',
+        'pagamento',
+        'produto_id',
+        'user_id',
+
+    ];
+    public $timestamps = true;
+    protected $casts = [
+        'id' => 'string',
+        'produto_id'=>'string',
+        'user_id'=>'string',
+        'vencimento_parcelas' => 'array',
+    ];
+
+    public function users()
+    {
+        return $this->belongsTo(User::class);
+    }
+    public function produto()
+    {
+        return $this->belongsTo(Produto::class);
+    }
 }
