@@ -62,4 +62,11 @@ class ProductController extends Controller
         $updateData = $this->productService->updateProduct($id, (array) $validated);
         return response()->json($updateData, 200);
     }
+
+    public function deleteProduct(Request $request, string $id):JsonResponse
+    {
+        $product = $this->productService->deleteProduct($id);
+        return response()->json($product, 200);
+    }
+
 }

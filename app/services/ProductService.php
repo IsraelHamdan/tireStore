@@ -68,4 +68,10 @@ class ProductService
         $product->update($data);
         return $product;
     }
+
+    public function deleteProduct(string $id): void
+    {
+        $product = $this->findById($id);
+        $product->delete();
+    }
 }

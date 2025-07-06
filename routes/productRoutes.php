@@ -8,4 +8,5 @@ Route::prefix('product')->group(function () {
     Route::get('/findById/{id}', [ProductController::class, 'findById']);
     Route::get('/findAll', [ProductController::class, 'findAll']);
     Route::patch('/updateProduct/{id}', [ProductController::class, 'updateProduct']);
+    Route::delete('/deleteProduct/{id}', [ProductController::class, 'deleteProduct']);
 });
