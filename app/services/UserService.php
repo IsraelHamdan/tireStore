@@ -41,7 +41,7 @@ class UserService
             if ($sqlState === '23505') {
                 throw new HttpException(409, 'Usuário já existe');
             }
-            // Loga stacktrace para depuração
+
             Log::error('Erro ao criar usuário', [
                 'message'   => $e->getMessage(),
                 'errorInfo' => $e->errorInfo,

@@ -9,6 +9,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use App\DTOs\User\CreateUserDTO;
 use App\services\UserService;
+
 class UserController extends Controller
 {
     private $userService;

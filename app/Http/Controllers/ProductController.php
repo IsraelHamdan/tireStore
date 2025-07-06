@@ -2,9 +2,39 @@
 
 namespace App\Http\Controllers;
 
+use App\DTOs\Product\CreateProductDTO;
+
+use App\services\ProductService;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 
 class ProductController extends Controller
 {
-    //
+    private ProductService $productService;
+    public function __construct(ProductService $productService)
+    {
+        $this->productService = $productService;
+    }
+
+    public  function createProduct(Request $request): JsonResponse
+    {
+        Log::info('Product creation request received', [
+            'name'=>$request->name,
+            'valor'=>$request->valor
+        ]);
+
+        $validated = $request->validate([
+            'name'=> 'required|string|max:255',
+            'valor'=> 'required|numeric'
+        ]);
+
+        $dto = new CreateProductDTO(
+            name: $validated['name'],
+            valor: $validated['valor'],
+        );
+        $productResponse = $this->productService->create($dto);
+        return response()->json($productResponse, 201);
+    }
+
 }

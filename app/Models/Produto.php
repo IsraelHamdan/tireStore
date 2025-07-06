@@ -23,17 +23,27 @@ use Illuminate\Notifications\Notifiable;
 class Produto extends Model
 {
     use HasFactory, Notifiable;
-    protected $incrementing = false;
+
+    public $incrementing = false;
     protected $keyType = 'string';
     protected $table = 'produtos';
-    protected $primaryKey = 'id';
-    public $timestamps = true;
-    protected $casts = [
-        'valor' => 'decimal:2'
-    ];
 
     protected $fillable = [
-        'nome',
+        'name',
         'valor',
     ];
+
+    protected $primaryKey = 'id';
+    public $timestamps = true;
+
+    protected $casts = [
+        'id' => 'string',
+        'name' => 'string',
+        'valor' => 'decimal:2',
+        'created_at' => 'datetime',
+        'updated_at' => 'datetime'
+    ];
+
+
+
 }
