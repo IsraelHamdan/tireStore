@@ -94,15 +94,14 @@ class UserService
         }
     }
 
-    public function updateUser(string $id, UserUpdateDTO $data)
+    public function updateUser(string $id, UserUpdateDTO $data): User
     {
         try {
-            $user = $this->userRepository->update($id, $data);
-            return Helpers::fromUserModel($user);
+            return $this->userRepository->update($id, $data);
         } catch (NotFoundHttpException $exception) {
             throw new HttpException('404', 'User not found');
         } catch (QueryException $e) {
-            throw new HttpException('500', 'Internal server error');
+            throw new HttpException('500', 'Internal server error' . $e->getMessage());
         }
     }
 
@@ -110,11 +109,14 @@ class UserService
     {
         try {
             $user = $this->userRepository->findByEmail($email);
+            echo $user;
             return Helpers::fromUserModel($user);
-        } catch (NotFoundHttpException $exception) {
-            throw new HttpException('404', 'User not found');
+        } catch (NotFoundHttpException $e) {
+            throw new HttpException('404', 'User not found' . $e->getMessage());
         } catch (QueryException $e) {
-            throw new HttpException('500', 'Internal server error');
+            throw new HttpException($e->getCode(), 'Internal server error' . $e->getMessage());
+        }catch (\Exception $e){
+            throw new HttpException(500, 'Internal server error');
         }
     }
 

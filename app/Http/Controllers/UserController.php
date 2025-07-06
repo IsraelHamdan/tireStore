@@ -68,12 +68,12 @@ class UserController extends Controller
     public function updateUser(Request $request, string $id): JsonResponse
     {
         $validated = $request->validate([
-            'name' => 'required|string|max:255',
-            'email' => 'required|email|unique:users,email',
+            'name' => 'sometimes|string|max:255',
+            'email' => 'sometimes|email|unique:users,email',
         ]);
         $dto = new UserUpdateDTO(
-            name: $validated['name'],
-            email: $validated['email'],
+            name: $validated['name'] ?? null,
+            email: $validated['email'] ?? null,
         );
         $updatedUser = $this->userService->updateUser($id, $dto);
         return response()->json($updatedUser, 200);

@@ -19,14 +19,12 @@ class UserRepository
 
     public function create(array $data): User
     {
-        log::info($data['name']);
-        $user = User::create([
+        return User::create([
             'name' => $data['name'],
             'email' => $data['email'],
             'cpf' => $data['cpf'],
             'password' => bcrypt($data['password']),
         ]);
-        return $user;
 
     }
 
@@ -44,17 +42,20 @@ class UserRepository
 
     public function deleteUser(string $id):void
     {
-        $user = User::findOrFail($id);
+        $user = $this->findById($id);
         $user->delete();
     }
 
     public function update(string $id, UserUpdateDTO $data): User
     {
-        $user = User::findOrFail($id);
-        $user->update([
+        $user = $this->findById($id);
+
+        $updateData = array_filter([
             'name' => $data->name,
             'email' => $data->email,
-        ]);
+        ], fn($value) => $value !== null);
+
+        $user->update($updateData);
         return $user;
     }
 
