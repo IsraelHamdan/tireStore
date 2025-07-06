@@ -80,7 +80,7 @@ class ProductService
 
     public function deleteProduct(string $id): void
     {
-        $product = $this->findById($id);
-        $product->delete();
+       $product = $this->findById($id);
+       $product->delete();
     }
 }

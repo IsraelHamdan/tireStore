@@ -18,17 +18,9 @@ class UserController extends Controller
         $this->userService = $userService;
     }
 
+
     public function createUser(Request $request): JsonResponse
     {
-        $log = "
-            Dados vindos da requisição:
-
-            nome: {$request-> nome},
-            email: {$request-> email},
-            cpf: {$request->cpf}
-        ";
-        echo $log;
-
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'email' => 'required|email|unique:users,email',
@@ -47,6 +39,11 @@ class UserController extends Controller
         return response()->json($userResponse, 201);
     }
 
+    public function findAll(Request $request): JsonResponse
+    {
+        $users = $this->userService->findAll();
+        return response()->json($users, 200);
+    }
 
     public function findById(Request $request): JsonResponse
     {
@@ -75,15 +72,10 @@ class UserController extends Controller
         $dto = new UserUpdateDTO(
             name: $validated['name'] ?? null,
             email: $validated['email'] ?? null,
+            cpf: $request->cpf ?? null,
         );
         $updatedUser = $this->userService->updateUser($id, $dto);
         return response()->json($updatedUser, 200);
-    }
-
-    public function findAll(Request $request): JsonResponse
-    {
-        $users = $this->userService->findAll();
-        return response()->json($users, 200);
     }
 
     public function searchByName(Request $request, string $nome):JsonResponse
