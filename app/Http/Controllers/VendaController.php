@@ -44,4 +44,16 @@ class VendaController extends Controller
 
         return response()->json($venda, 201);
     }
+
+    public  function  findAll(Request $request):JsonResponse
+    {
+        $vendas = $this->vendasService->findAll();
+        return response()->json($vendas, 200);
+    }
+
+    public function findById(Request $request, string $id):JsonResponse
+    {
+        $venda = $this->vendasService->findById($id);
+        return response()->json($venda, 200);
+    }
 }

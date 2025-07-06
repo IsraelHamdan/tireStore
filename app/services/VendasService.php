@@ -62,4 +62,17 @@ class VendasService
             throw new HttpException($e->getCode(), "{$e->getMessage()}", "{$e->getPrevious()}");
         }
     }
+
+    public function findAll(): array
+    {
+        try {
+            return Venda::all()->toArray();
+        } catch (HttpException $e) {}
+    }
+
+    public function findById(string $id): Venda
+    {
+        return Venda::findOrFail($id);
+
+    }
 }
