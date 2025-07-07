@@ -3,13 +3,14 @@
 
 namespace App\Http\Controllers;
 
-use App\DTOs\User\UserResponseDTO;
+
 use App\DTOs\User\UserUpdateDTO;
-use AuthService;
+use App\services\AuthService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use App\DTOs\User\CreateUserDTO;
 use App\services\UserService;
+use Illuminate\Routing\Redirector;
 
 class UserController extends Controller
 {
@@ -36,9 +37,11 @@ class UserController extends Controller
         );
 
         $userResponse = $this->userService->create($dto);
-        $authData = $authService->authenticateUser($userResponse);
 
-        return response()->json($userResponse, 201);
+        return response()->json([
+            'message' => 'Usuário criado com sucesso',
+            'user' => $userResponse,
+        ], 201);
     }
 
     public function findAll(Request $request): JsonResponse
@@ -59,11 +62,6 @@ class UserController extends Controller
         return response()->json($user, 200);
     }
 
-    public function searchUserByName(Request $request): JsonResponse
-    {
-        $user = $this->userService->searchByName($request->name);
-        return response()->json($user, 200);
-    }
 
     public function updateUser(Request $request, string $id): JsonResponse
     {
@@ -80,9 +78,5 @@ class UserController extends Controller
         return response()->json($updatedUser, 200);
     }
 
-    public function searchByName(Request $request, string $nome):JsonResponse
-    {
-        $user = $this->userService->searchByName($nome);
-        return response()->json($user, 200);
-    }
+
 }

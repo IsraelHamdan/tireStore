@@ -1,12 +1,12 @@
 <?php
 
 namespace App\Models;
-
+use Tymon\JWTAuth\Contracts\JWTSubject;
 use Illuminate\Support\Str;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Tymon\JWTAuth\Contracts\JWTSubject;
+
 
 /**
  *
@@ -45,7 +45,8 @@ class User extends Authenticatable implements  JWTSubject
         'cpf',
         'password',
     ];
-    protected $hidden = ['passowrd' => 'hashed'];
+    protected $hidden = ['password'];
+
     protected $casts = [
         'id'        => 'string',
         'created_at'=> 'datetime',
@@ -54,12 +55,14 @@ class User extends Authenticatable implements  JWTSubject
 
     public function getJWTIdentifier()
     {
-        return $this->getKey();
+        return (string) $this->getKey(); // ou (string) $this->id;
     }
-    public function getJWTCustomClaims(): array
+
+    public function getJWTCustomClaims()
     {
         return [];
     }
+
 
 
 }

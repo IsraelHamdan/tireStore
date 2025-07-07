@@ -25,7 +25,7 @@ class AuthService
      */
     public function authenticateUser(User $user)
     {
-        $token = $this->generateToken($user);
+        $token =   JWTAuth::fromUser($user);
 
         // Salva o token no cookie
         $this->setTokenCookie($token);

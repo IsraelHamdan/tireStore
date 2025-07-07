@@ -16,6 +16,7 @@ Route::prefix('user')->group(function () {
     Route::get('/findAll', [UserController::class, 'findAll']);
     Route::get('findById/{id}', [UserController::class, 'findById']);
     Route::get('/findByName/{name}', [UserController::class, 'searchByName']);
+
 });
 
 

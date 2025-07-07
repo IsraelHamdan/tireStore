@@ -62,13 +62,6 @@ class UserService
 
             $user = User::create($validatedData);
 
-            Log::info('Usuário salvo com sucesso', [
-                'id' => $user->id,
-                'name' => $user->name,
-                'email' => $user->email,
-                'cpf' => $user->cpf,
-            ]);
-
             return $user;
 
         } catch (QueryException $e) {
@@ -110,18 +103,6 @@ class UserService
         }
     }
 
-    public  function  findByEmail(string $email): User
-    {
-        try {
-            return User::where('email', $email)->first();
-        } catch (NotFoundHttpException $e) {
-            throw new HttpException('404', 'User not found' . $e->getMessage());
-        } catch (QueryException $e) {
-            throw new HttpException($e->getCode(), 'Internal server error' . $e->getMessage());
-        }catch (\Exception $e){
-            throw new HttpException(500, 'Internal server error');
-        }
-    }
 
     public function searchByName(string $nome): array
     {
@@ -135,6 +116,8 @@ class UserService
             throw new HttpException('500', 'Internal server error');
         }
     }
+
+
 
     public function deleteUser(string $id):void
     {
