@@ -36,20 +36,13 @@ class VendaController extends Controller
         );
 
         $venda = $this->vendasService->createVenda($dto);
-        Log::info('Venda criada no controller', [
-            'id' => $venda->id,
-            'user_id' => $venda->user_id,
-            'produto_id' => $venda->produto_id,
-            'valor_total' => $venda->valor_total,
-            'qtd_produto' => $venda->qtd_produto,
-            'pagamento' => $venda->pagamento,
-            'parcelas'=> $venda->parcelas,
-            'vencimento_parcelas'=> $venda->vencimento_parcelas,
-            'created_at' => $venda->created_at,
-            'updated_at' => $venda->updated_at,
-        ]);
 
-        return response()->json($venda, 201);
+        return response()->json([
+            'success' => true,
+            'message' => 'Venda criada com sucesso',
+            'data' => $venda,
+        ], 201);
+
     }
 
     public  function  findAll(Request $request):JsonResponse
@@ -84,7 +77,12 @@ class VendaController extends Controller
         );
 
         $venda = $this->vendasService->updateVenda($id, $dto);
-        return response()->json($venda, 200);
+        return response()->json([
+            'success' => true,
+            'message' => 'Venda atualizada com sucesso',
+            'data' => $venda,
+        ], 200);
+
     }
 
     public function deleteVenda(Request $request, string $id):JsonResponse

@@ -35,10 +35,7 @@
                             Usuário
                         </a>
                         <ul class="dropdown-menu border-2 shadow" style="background-color: #1e1e1e; border-color: #1e1e1e;">
-                            <li><a class="dropdown-item px-3 py-2" href="{{ route('users.front.cadastro') }}"
-                                   style="color: #fefefe; background-color: transparent;"
-                                   onmouseover="this.style.backgroundColor='#333333';"
-                                   onmouseout="this.style.backgroundColor='transparent';">Cadastrar Usuário</a></li>
+
                             <li><a class="dropdown-item px-3 py-2" href="{{ route('users.front.busca') }}"
                                    style="color: #fefefe; background-color: transparent;"
                                    onmouseover="this.style.backgroundColor='#333333';"
@@ -55,10 +52,7 @@
                             Produto
                         </a>
                         <ul class="dropdown-menu border-2 shadow" style="background-color: #1e1e1e; border-color: #1e1e1e;">
-                            <li><a class="dropdown-item px-3 py-2" href="{{ route('products.front.cadastro') }}"
-                                   style="color: #fefefe; background-color: transparent;"
-                                   onmouseover="this.style.backgroundColor='#333333';"
-                                   onmouseout="this.style.backgroundColor='transparent';">Cadastrar Produto</a></li>
+
                             <li><a class="dropdown-item px-3 py-2" href="{{ route('products.front.busca') }}"
                                    style="color: #fefefe; background-color: transparent;"
                                    onmouseover="this.style.backgroundColor='#333333';"
@@ -75,10 +69,6 @@
                             Venda
                         </a>
                         <ul class="dropdown-menu border-2 shadow" style="background-color: #1e1e1e; border-color: #1e1e1e;">
-                            <li><a class="dropdown-item px-3 py-2" href="{{ route('vendas.front.cadastro') }}"
-                                   style="color: #fefefe; background-color: transparent;"
-                                   onmouseover="this.style.backgroundColor='#333333';"
-                                   onmouseout="this.style.backgroundColor='transparent';">Cadastrar Venda</a></li>
                             <li><a class="dropdown-item px-3 py-2" href="{{ route('vendas.front.busca') }}"
                                    style="color: #fefefe; background-color: transparent;"
                                    onmouseover="this.style.backgroundColor='#333333';"
@@ -99,12 +89,29 @@
                 </h1>
                 <p class="text-muted">Visualize e gerencie todas as vendas do sistema</p>
             </div>
-            <div class="col-md-4 text-end">
-                <a href="#" class="btn btn-primary">
-                    <i class="fas fa-plus"></i> Nova Venda
-                </a>
+            <button class="btn btn-primary" id="btn-nova-venda" onclick="openNovaVendaModal()">
+                Nova Venda
+            </button>
+
+            <div class="modal fade" id="modal-nova-venda" tabindex="-1" aria-labelledby="modalNovaVendaLabel" aria-hidden="true">
+                <div class="modal-dialog modal-lg modal-dialog-scrollable">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="modalNovaVendaLabel">Nova Venda</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
+                        </div>
+                        <div class="modal-body" id="modal-nova-venda-body">
+                            <!-- Conteúdo do modal via JS -->
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                            <button type="button" class="btn btn-primary" id="btn-salvar-nova-venda">Salvar Venda</button>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
+
 
         <!-- Filtros -->
         <div class="row mb-3">
@@ -231,6 +238,8 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/1.6.0/axios.min.js"></script>
     @vite(['resources/js/vendas.js'])
+    <script src="https://unpkg.com/imask"></script>
+
 
     <script>
         function filterVendas() {

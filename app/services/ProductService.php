@@ -98,7 +98,7 @@ class ProductService
     {
         try {
             return Produto::where('name', 'ILIKE', "%$nome%")
-                ->get()->map(fn($user) => $user->only(['id', 'name', 'email', 'cpf']))
+                ->get()->map(fn($user) => $user->only(['id', 'name']))
                 ->toArray();
         } catch (NotFoundHttpException $exception) {
             throw new HttpException('404', 'User not found');
