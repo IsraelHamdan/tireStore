@@ -64,6 +64,22 @@ class VendaController extends Controller
 
     }
 
+    public function deleteVenda(Request $request, string $id): JsonResponse
+    {
+        try {
+            $this->vendasService->deleteVenda($id);
+            return response()->json([
+                'success' => true,
+                'message' => 'Venda deletada com sucesso'
+            ], 200);
+        } catch (\Throwable $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Erro ao deletar venda: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
     public function updateVenda(Request $request, string $id):JsonResponse
     {
         $dto = new UpdateVendaDTO(
@@ -85,9 +101,5 @@ class VendaController extends Controller
 
     }
 
-    public function deleteVenda(Request $request, string $id):JsonResponse
-    {
-        $venda = $this->vendasService->deleteVenda($id);
-        return response()->json($venda, 200);
-    }
+
 }
