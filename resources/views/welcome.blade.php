@@ -8,7 +8,7 @@
     <!-- Font Awesome 6 CDN -->
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
 
-    <title>Teste</title>
+    <title>Dashboard</title>
 </head>
 <body style="background-color: #fefefe">
     <header>
@@ -229,14 +229,7 @@
         </div>
     </main>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <script>
-        window.ENV = {
-            API_BASE_URL: "{{ url('/api') }}"
-        };
-    </script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/1.6.0/axios.min.js"></script>
+
     @vite(['resources/js/vendas.js'])
     <script src="https://unpkg.com/imask"></script>
 

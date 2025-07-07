@@ -2,12 +2,11 @@
 
 namespace App\services;
 
+use Tymon\JWTAuth\Facades\JWTAuth;
 use App\Models\User;
-use App\Services\AuthService\ValidationException;
-use App\Services\AuthService\Validator;
-use Firebase\JWT\JWT;
-use Firebase\JWT\Key;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Validator;
+use Illuminate\Validation\ValidationException;
 
 class AuthService
 {
@@ -79,16 +78,7 @@ class AuthService
      */
     private function generateToken(User $user)
     {
-        $payload = [
-            'iss' => config('app.url'),
-            'sub' => $user->id,
-            'email' => $user->email,
-            'name' => $user->name,
-            'iat' => time(),
-            'exp' => time() + $this->tokenExpiration,
-        ];
-
-        return JWT::encode($payload, $this->key, $this->algorithm);
+        return JWTAuth::fromUser($user);
     }
 
     /**
@@ -97,10 +87,7 @@ class AuthService
     public function validateToken($token)
     {
         try {
-            $decoded = JWT::decode($token, new Key($this->key, $this->algorithm));
-
-            $user = User::find($decoded->sub);
-
+            $user = JWTAuth::parseToken()->authenticate();
             if (!$user) {
                 return null;
             }

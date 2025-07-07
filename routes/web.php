@@ -1,13 +1,20 @@
 <?php
 
+use App\Http\Controllers\AuthController;
 use Illuminate\Support\Facades\Route;
+
 
 Route::get('/', function () {
     if(request()->cookie('auth_token')) {
-        return redirect('welcome');
+        return redirect()->route('welcome');
     }
     return view('login');
 });
+
+// Rota que exibe a view welcome
+Route::get('/welcome', function () {
+    return view('welcome');
+})->name('welcome');
 
 
 // Página de busca de usuário (frontend)

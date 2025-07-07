@@ -261,16 +261,6 @@ async function getProductInfoById(productId) {
     }
 }
 
-async function getUserInfoById(userName) {
-    try {
-        const res = await api.get(`/user/findByName/${userName}`);
-        return res.data;
-    } catch (error) {
-        console.error('Erro ao buscar usuário por nome:', error);
-        return null;
-    }
-}
-
 function addValorParcelaListeners(container, total) {
     const valores = container.querySelectorAll('.vencimento-valor');
 
@@ -413,9 +403,6 @@ async function initBuscaParcialUsuario(callback, inputId = 'usuario-busca', suge
         }, 300);
     });
 }
-
-
-
 
 //Nova venda
 function getNovaVendaFormHTML() {

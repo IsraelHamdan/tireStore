@@ -5,11 +5,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{{ config('app.name') }} - Autenticação</title>
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="<KEY>" crossorigin="anonymous">
+
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
 </head>
 <body class="bg-gradient-to-br from-blue-50 to-indigo-100 min-h-screen">
-<div class="min-h-screen flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
+    <div class="min-h-screen flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
     <div class="max-w-md w-full space-y-8">
         <div>
             <h2 class="mt-6 text-center text-3xl font-extrabold text-gray-900">
@@ -41,75 +42,63 @@
             <!-- Conteúdo das abas -->
             <div class="tab-content">
                 <!-- Aba Login -->
-                <div id="login-tab" class="tab-pane active">
-                    <form id="login-form" action="{{ route('auth.login') }}" method="POST">
-                        @csrf
-                        <div class="space-y-4">
-                            <div>
-                                <label for="login-email" class="block text-sm font-medium text-gray-700">
-                                    Email
-                                </label>
-                                <div class="mt-1 relative">
-                                    <input
-                                        id="login-email"
-                                        name="email"
-                                        type="email"
-                                        autocomplete="email"
-                                        required
-                                        value="{{ old('email') }}"
-                                        class="appearance-none relative block w-full px-3 py-2 pl-10 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
-                                        placeholder="seu@email.com"
-                                    >
-                                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                        <i class="fas fa-envelope text-gray-400"></i>
+                <div class="container mt-5" id="login-tab">
+                    <div class="row justify-content-center">
+                        <div class="col-md-6 col-lg-5">
+                            <h2 class="text-center mb-4">Entrar na plataforma</h2>
+                            <form id="login-form">
+                                <div class="mb-3">
+                                    <label for="login-email" class="form-label">Email</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text"><i class="fas fa-envelope"></i></span>
+                                        <input
+                                            type="email"
+                                            class="form-control"
+                                            id="login-email"
+                                            name="email"
+                                            placeholder="seu@email.com"
+                                            required
+                                        >
                                     </div>
                                 </div>
-                                @error('email')
-                                <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
-                                @enderror
-                            </div>
 
-                            <div>
-                                <label for="login-password" class="block text-sm font-medium text-gray-700">
-                                    Senha
-                                </label>
-                                <div class="mt-1 relative">
-                                    <input
-                                        id="login-password"
-                                        name="password"
-                                        type="password"
-                                        autocomplete="current-password"
-                                        required
-                                        class="appearance-none relative block w-full px-3 py-2 pl-10 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
-                                        placeholder="Sua senha"
-                                    >
-                                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                        <i class="fas fa-lock text-gray-400"></i>
+                                <div class="mb-3">
+                                    <label for="login-password" class="form-label">Senha</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text"><i class="fas fa-lock"></i></span>
+                                        <input
+                                            type="password"
+                                            class="form-control"
+                                            id="login-password"
+                                            name="password"
+                                            placeholder="Sua senha"
+                                            required
+                                        >
                                     </div>
                                 </div>
-                            </div>
 
-                            <div class="flex items-center justify-between">
-                                <div class="flex items-center">
-                                    <input
-                                        id="remember-me"
-                                        name="remember"
-                                        type="checkbox"
-                                        class="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
-                                    >
-                                    <label for="remember-me" class="ml-2 block text-sm text-gray-900">
-                                        Lembrar de mim
-                                    </label>
+                                <div class="d-flex justify-content-between align-items-center mb-3">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="remember-me" name="remember">
+                                        <label class="form-check-label" for="remember-me">Lembrar-me</label>
+                                    </div>
+                                    <a href="#" class="small text-decoration-none">Esqueceu a senha?</a>
                                 </div>
 
-                                <div class="text-sm">
-                                    <a href="#" class="font-medium text-indigo-600 hover:text-indigo-500">
-                                        Esqueceu sua senha?
-                                    </a>
+                                <div class="d-grid">
+                                    <button type="submit" id="submit-btn" class="btn btn-primary">
+                                        <i class="fas fa-sign-in-alt me-2"></i>Entrar
+                                    </button>
                                 </div>
-                            </div>
 
-                            <div>
+                                <div id="login-error" class="mt-3 text-danger text-center small"></div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+
+
+                <div>
                                 <button
                                     type="submit"
                                     class="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors"
@@ -240,7 +229,7 @@
 </div>
 
 <!-- Loading overlay -->
-<div id="loading-overlay" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+    <div id="loading-overlay" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
     <div class="bg-white p-6 rounded-lg">
         <div class="flex items-center space-x-3">
             <div class="animate-spin rounded-full h-6 w-6 border-b-2 border-indigo-600"></div>
@@ -249,7 +238,7 @@
     </div>
 </div>
 
-<script>
+    <script>
     // Configuração do CSRF token
     const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
 
@@ -289,6 +278,16 @@
     @if($errors->has('name') || $errors->has('password_confirmation'))
     document.querySelector('[data-tab="register"]').click();
     @endif
+
 </script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        window.ENV = {
+            API_BASE_URL: "{{ url('/api') }}"
+        };
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/1.6.0/axios.min.js"></script>
+    @vite(['resources/js/User.js'])
 </body>
 </html>

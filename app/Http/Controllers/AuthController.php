@@ -31,7 +31,7 @@ class AuthController extends Controller
 
             // Para requests web, armazena o token na sessão e redireciona
             session(['auth_token' => $result['token']]);
-            return redirect()->intended('/dashboard');
+            return redirect('/welcome');
 
         } catch (ValidationException $e) {
             if ($request->expectsJson()) {
