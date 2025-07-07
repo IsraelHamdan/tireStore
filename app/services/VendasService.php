@@ -122,6 +122,8 @@ class VendasService
 
     }
 
+
+
     public function deleteVenda(string $id): void
     {
         try {
@@ -131,5 +133,7 @@ class VendasService
             throw new HttpException($e->getCode(), "{$e->getMessage()}", "{$e->getPrevious()}");
         }
     }
+
+
 
 }

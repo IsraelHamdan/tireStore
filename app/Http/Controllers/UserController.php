@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 
 use App\DTOs\User\UserResponseDTO;
 use App\DTOs\User\UserUpdateDTO;
+use AuthService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use App\DTOs\User\CreateUserDTO;
@@ -19,7 +20,7 @@ class UserController extends Controller
     }
 
 
-    public function createUser(Request $request): JsonResponse
+    public function createUser(Request $request, AuthService $authService): JsonResponse
     {
         $validated = $request->validate([
             'name' => 'required|string|max:255',
@@ -35,6 +36,7 @@ class UserController extends Controller
         );
 
         $userResponse = $this->userService->create($dto);
+        $authData = $authService->authenticateUser($userResponse);
 
         return response()->json($userResponse, 201);
     }

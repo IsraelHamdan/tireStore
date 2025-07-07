@@ -3,7 +3,10 @@
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
-    return view('welcome');
+    if(request()->cookie('auth_token')) {
+        return redirect('welcome');
+    }
+    return view('login');
 });
 
 
