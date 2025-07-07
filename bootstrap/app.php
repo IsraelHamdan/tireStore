@@ -1,5 +1,5 @@
 <?php
-echo "Carregando bootstrap/app.php com Exceptions\n";
+
 
 use App\Exceptions\Handler;
 use Illuminate\Foundation\Application;
@@ -25,7 +25,6 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->append(HandleCors::class);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
-        echo "Registrando tratamento de exceptions...\n";
         $exceptions->renderable(function (Throwable $e, Request $request) {
             Log::error('Erro capturado pelo renderable', [
                 'message' => $e->getMessage(),

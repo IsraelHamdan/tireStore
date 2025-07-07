@@ -55,6 +55,12 @@ class ProductController extends Controller
         return response()->json($products, 200);
     }
 
+    public function findByName(Request $request, string $nome):JsonResponse
+    {
+        $user = $this->productService->searchByName($nome);
+        return response()->json($user, 200);
+    }
+
     public function updateProduct(Request $request, string $id): JsonResponse
     {
         $validated = $request->validate([

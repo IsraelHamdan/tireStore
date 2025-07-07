@@ -93,4 +93,17 @@ class ProductService
        $product = $this->findById($id);
        $product->delete();
     }
+
+    public function searchByName(string $nome): array
+    {
+        try {
+            return Produto::where('name', 'ILIKE', "%$nome%")
+                ->get()->map(fn($user) => $user->only(['id', 'name', 'email', 'cpf']))
+                ->toArray();
+        } catch (NotFoundHttpException $exception) {
+            throw new HttpException('404', 'User not found');
+        } catch (QueryException $e) {
+            throw new HttpException('500', 'Internal server error');
+        }
+    }
 }

@@ -1,11 +1,232 @@
-@import 'tailwindcss';
+@media (max-width: 991.98px) {
+    .navbar-nav {
+        text-align: center;
+        padding-top: 1rem;
+        width: 100%;
+    }
 
-@source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
-@source '../../storage/framework/views/*.php';
-@source '../**/*.blade.php';
-@source '../**/*.js';
+    .navbar-nav .nav-item {
+        margin-bottom: 0.5rem;
+        width: 100%;
+    }
 
-@theme {
-    --font-sans: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
-        'Segoe UI Symbol', 'Noto Color Emoji';
-}
+    .navbar-nav .nav-link {
+        text-align: center;
+        padding: 0.75rem 1rem !important;
+        color: #1e1e1e !important;
+        background-color: transparent !important;
+        border: 2px solid #1e1e1e !important;
+        border-radius: 4px !important;
+        margin-bottom: 0.5rem;
+    }
+
+    .navbar-nav .nav-link:hover {
+        color: #fefefe !important;
+        background-color: #1e1e1e !important;
+        border-color: #1e1e1e !important;
+    }
+
+    .dropdown-menu {
+        position: static !important;
+        transform: none !important;
+        width: 100%;
+        /* Navbar.css - Estilos para a navbar responsiva */
+
+        /* Cores customizadas */
+        .navbar-custom {
+            background-color: #fefefe !important;
+            border-bottom: 1px solid #e0e0e0;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .navbar-custom .navbar-brand {
+            color: #1e1e1e !important;
+            font-weight: bold;
+            font-size: 1.5rem;
+        }
+
+        .navbar-custom .navbar-nav .nav-link {
+            color: #1e1e1e !important;
+            font-weight: 500;
+            padding: 0.5rem 1rem !important;
+            background-color: transparent !important;
+            border: 2px solid transparent !important;
+            border-radius: 4px !important;
+        }
+
+        .navbar-custom .navbar-nav .nav-link:hover {
+            color: #1e1e1e !important;
+            background-color: #f0f0f0 !important;
+            border-color: #1e1e1e !important;
+        }
+
+        .navbar-custom .navbar-nav .nav-link:focus {
+            color: #1e1e1e !important;
+            background-color: #f0f0f0 !important;
+            border-color: #1e1e1e !important;
+        }
+
+        .navbar-custom .navbar-nav .dropdown-toggle::after {
+            border-top-color: #1e1e1e !important;
+        }
+
+        .navbar-custom .dropdown-menu {
+            background-color: #1e1e1e !important;
+            border: 2px solid #1e1e1e !important;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        }
+
+        .navbar-custom .dropdown-item {
+            color: #fefefe !important;
+            padding: 0.75rem 1rem;
+            background-color: transparent !important;
+        }
+
+        .navbar-custom .dropdown-item:hover {
+            background-color: #333333 !important;
+            color: #fefefe !important;
+        }
+
+        .navbar-custom .dropdown-item:focus {
+            background-color: #333333 !important;
+            color: #fefefe !important;
+        }
+
+        /* Botão hamburger customizado */
+        .navbar-toggler {
+            border: 2px solid #1e1e1e !important;
+            padding: 0.25rem 0.5rem;
+            background-color: #1e1e1e !important;
+        }
+
+        .navbar-toggler:focus {
+            box-shadow: 0 0 0 0.25rem rgba(30, 30, 30, 0.25);
+            border-color: #1e1e1e !important;
+        }
+
+        .navbar-toggler:hover {
+            background-color: #333333 !important;
+            border-color: #333333 !important;
+        }
+
+        .navbar-toggler-icon {
+            background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 30'%3e%3cpath stroke='rgba%28255, 255, 255, 1%29' stroke-linecap='round' stroke-miterlimit='10' stroke-width='2' d='m4 7h22M4 15h22M4 23h22'/%3e%3c/svg%3e");
+            width: 1.5em;
+            height: 1.5em;
+        }
+
+        /* Responsividade para telas menores - incluindo janelas divididas */
+        @media (max-width: 1199.98px) {
+            .navbar-expand-lg .navbar-nav {
+                flex-direction: column;
+            }
+
+            .navbar-expand-lg .navbar-collapse {
+                display: none;
+            }
+
+            .navbar-expand-lg .navbar-collapse.show {
+                display: block;
+            }
+
+            .navbar-toggler {
+                display: block !important;
+            }
+        }
+
+        @media (max-width: 991.98px) {
+            .navbar-nav {
+                text-align: center;
+                padding-top: 1rem;
+                width: 100%;
+            }
+
+            .navbar-nav .nav-item {
+                margin-bottom: 0.5rem;
+                width: 100%;
+            }
+
+            .navbar-nav .nav-link {
+                text-align: center;
+                padding: 0.75rem 1rem !important;
+            }
+
+            .dropdown-menu {
+                position: static !important;
+                transform: none !important;
+                width: 100%;
+                box-shadow: none;
+                border: none;
+                border-top: 1px solid #e0e0e0;
+                margin-top: 0.5rem;
+            }
+
+            .dropdown-item {
+                text-align: center;
+                padding: 0.75rem 1rem !important;
+            }
+        }
+
+        /* Para telas muito pequenas (celulares) */
+        @media (max-width: 767.98px) {
+            .navbar-brand {
+                font-size: 1.25rem !important;
+            }
+
+            .navbar-nav .nav-link {
+                font-size: 1rem;
+                padding: 1rem !important;
+            }
+
+            .dropdown-item {
+                font-size: 0.9rem;
+                padding: 0.75rem 1rem !important;
+            }
+        }
+
+        /* Para janelas muito estreitas (como janelas divididas) */
+        @media (max-width: 600px) {
+            .navbar-custom {
+                padding: 0.5rem 1rem !important;
+            }
+
+            .navbar-brand {
+                font-size: 1.1rem !important;
+            }
+
+            .navbar-toggler {
+                padding: 0.2rem 0.4rem;
+            }
+        }
+
+        /* Força a responsividade mesmo em telas médias */
+        @media (max-width: 1300px) {
+            .navbar-expand-lg .navbar-nav {
+                flex-direction: column;
+            }
+
+            .navbar-expand-lg .navbar-collapse {
+                display: none;
+            }
+
+            .navbar-expand-lg .navbar-collapse.show {
+                display: block;
+            }
+
+            .navbar-expand-lg .navbar-toggler {
+                display: block !important;
+            }
+            .navbar-collapse {
+                transition: all 0.3s ease-in-out;
+            }
+
+            .dropdown-menu {
+                transition: all 0.2s ease-in-out;
+            }
+
+            .nav-link {
+                transition: all 0.2s ease-in-out;
+            }
+        }}}
+
+

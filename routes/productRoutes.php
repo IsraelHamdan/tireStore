@@ -9,5 +9,5 @@ Route::prefix('product')->group(function () {
     Route::get('/findAll', [ProductController::class, 'findAll']);
     Route::patch('/updateProduct/{id}', [ProductController::class, 'updateProduct']);
     Route::delete('/deleteProduct/{id}', [ProductController::class, 'deleteProduct']);
-    Route::get('/searchByName/{name}', [ProductController::class, 'searchByName']);
+    Route::get('/findByName/{name}', [ProductController::class, 'findByName']);
 });

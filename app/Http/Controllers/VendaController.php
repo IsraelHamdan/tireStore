@@ -11,6 +11,12 @@ use Illuminate\Support\Facades\Log;
 
 class VendaController extends Controller
 {
+    public function index()
+    {
+        $apiBaseUrl = url('/api');
+
+        return view('vendas.index', compact('apiBaseUrl'));
+    }
     private VendasService $vendasService;
     public function __construct(VendasService $vendasService)
     {
