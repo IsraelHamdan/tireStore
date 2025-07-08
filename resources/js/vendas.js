@@ -10,6 +10,8 @@ const api = axios.create({
     }
 });
 
+
+
 let vendasData = [];
 
 function showLoading() {
@@ -90,6 +92,7 @@ function renderVendasTable(vendas) {
     const totalVendas = document.getElementById('total-vendas');
 
     totalVendas.textContent = `Total: ${vendas.length} vendas`;
+    vendas.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
 
     if (!vendas || vendas.length === 0) {
         container.innerHTML = `
@@ -126,9 +129,6 @@ function renderVendasTable(vendas) {
 
         const parcelasInfo = venda.parcelas ? `${venda.parcelas}x` : 'À vista';
 
-        const vencimentosInfo = venda.vencimento_parcelas && Array.isArray(venda.vencimento_parcelas) ?
-            venda.vencimento_parcelas.join(', ') : 'N/A';
-
         const rowId = `venda-row-${index}`;
         const userIdCellId = `user-${index}`;
         const productIdCellId = `produto-nome-${venda.id}`;
@@ -140,11 +140,9 @@ function renderVendasTable(vendas) {
                 <td id="${productIdCellId}">Carregando...</td>
                 <td>${venda.qtd_produto || 0}</td>
                 <td id="${valorTotalCellId}">Calculando...</td>
-                <td><span title="Vencimentos: ${vencimentosInfo}">${parcelasInfo}</span></td>
+                <td><span title="Parcelas">${parcelasInfo}</span></td>
                 <td>
-                  ${venda.vencimento_parcelas && venda.vencimento_parcelas.length > 0
-            ? venda.vencimento_parcelas.join('<br>')
-            : 'N/A'}
+                  ${renderVencimentoParcelas(venda.vencimento_parcelas)}
                 </td>
                 <td>${venda.pagamento || 'N/A'}</td>
                 <td>${dataVenda}</td>
@@ -200,6 +198,51 @@ function renderVendasTable(vendas) {
 
     container.innerHTML = tableHTML;
 }
+
+
+function renderVencimentoParcelas(parcelas) {
+    if (!parcelas || !Array.isArray(parcelas) || parcelas.length === 0) {
+        return 'N/A';
+    }
+
+    // monta a tabela interna
+    let subTable = `
+      <table class="table table-sm table-bordered mb-0">
+        <thead>
+          <tr>
+            <th>Data</th>
+            <th>Valor</th>
+          </tr>
+        </thead>
+        <tbody>
+    `;
+
+    parcelas.forEach(p => {
+        // Se os valores forem string, só mostrar mesmo
+        const data = p.data || p;  // se for string simples, cai aqui
+        const valor = p.valor ?? '-';
+
+        // Formata valor como moeda BRL
+        const valorFormatado = typeof valor === 'number'
+            ? new Intl.NumberFormat('pt-BR', {style: 'currency', currency: 'BRL'}).format(valor)
+            : valor;
+
+        subTable += `
+          <tr>
+            <td>${data}</td>
+            <td>${valorFormatado}</td>
+          </tr>
+        `;
+    });
+
+    subTable += `
+        </tbody>
+      </table>
+    `;
+
+    return subTable;
+}
+
 
 // funções auxiliares para a parte de busca e edição
 function renderParcelasInput(containerId, datas = [], valorTotal = 0) {
@@ -543,17 +586,23 @@ async function montarPayloadVenda(produtoId, usuarioId, dadosFormulario, dadosPa
 
     const valorTotal = await calcularValorTotal(produtoId, qtdProduto);
 
+    // Combina datas e valores em objetos {data, valor}
+    const vencimento_parcelas = datas.map((data, index) => ({
+        data,
+        valor: valores[index]?.toString() ?? "0"
+    }));
+
     return {
         produto_id: produtoId,
         user_id: usuarioId,
         qtd_produto: qtdProduto,
         parcelas: parcelas,
-        vencimento_parcelas: datas,
-        valor_parcelas: valores,
+        vencimento_parcelas, // formato correto!
         valor_total: valorTotal,
         pagamento: pagamento,
     };
 }
+
 
 // Função para criar a venda
 async function criarVenda(vendaPayload) {
@@ -868,5 +917,12 @@ window.deleteVenda = async function(vendaId) {
 };
 
 window.addEventListener('load', () => {
+    console.log('API_BASE_URL:', API_BASE_URL);
     getData();
 });
+
+
+// Filtragem das vendas
+
+//Filtra por data
+async function

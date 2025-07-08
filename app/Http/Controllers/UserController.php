@@ -78,5 +78,9 @@ class UserController extends Controller
         return response()->json($updatedUser, 200);
     }
 
-
+    public function searchByName(Request $request, string $name): JsonResponse
+    {
+        $user = $this->userService->searchByName($name);
+        return response()->json($user, 200);
+    }
 }

@@ -32,7 +32,7 @@
                            style="color: #1e1e1e; border: 2px solid transparent;"
                            onmouseover="this.style.backgroundColor='#f0f0f0'; this.style.borderColor='#1e1e1e';"
                            onmouseout="this.style.backgroundColor='transparent'; this.style.borderColor='transparent';">
-                            Usuário
+                            Gerenciar Usuários
                         </a>
                         <ul class="dropdown-menu border-2 shadow" style="background-color: #1e1e1e; border-color: #1e1e1e;">
 
@@ -56,7 +56,7 @@
                             <li><a class="dropdown-item px-3 py-2" href="{{ route('products.front.busca') }}"
                                    style="color: #fefefe; background-color: transparent;"
                                    onmouseover="this.style.backgroundColor='#333333';"
-                                   onmouseout="this.style.backgroundColor='transparent';">Buscar Produto</a></li>
+                                   onmouseout="this.style.backgroundColor='transparent';">Gerenciar Produto</a></li>
                         </ul>
                     </li>
                     <!-- Venda -->
@@ -231,6 +231,11 @@
 
 
     @vite(['resources/js/vendas.js'])
+    <script>
+        window.ENV = {
+            API_BASE_URL: "{{ url('/api') }}"
+        };
+    </script>
     <script src="https://unpkg.com/imask"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/1.6.0/axios.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
