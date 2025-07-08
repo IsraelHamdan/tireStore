@@ -130,17 +130,31 @@ function renderVendasTable(vendas) {
 
         const parcelasInfo = venda.parcelas ? `${venda.parcelas}x` : 'À vista';
 
+        // Formatação dos valores monetários
+        const valorUnitario = parseFloat(venda.valor_unitario_produto) || 0;
+        const valorTotal = parseFloat(venda.valor_total) || 0;
+
+        const valorUnitarioFormatado = new Intl.NumberFormat('pt-BR', {
+            style: 'currency',
+            currency: 'BRL'
+        }).format(valorUnitario);
+
+        const valorTotalFormatado = new Intl.NumberFormat('pt-BR', {
+            style: 'currency',
+            currency: 'BRL'
+        }).format(valorTotal);
+
         const rowId = `venda-row-${index}`;
         const userIdCellId = `user-${index}`;
         const productIdCellId = `produto-nome-${venda.id}`;
-        const valorTotalCellId = `valor-total-${venda.id}`;
 
         tableHTML += `
             <tr id="${rowId}">
                 <td id="${userIdCellId}">Carregando...</td>
                 <td id="${productIdCellId}">Carregando...</td>
                 <td>${venda.qtd_produto || 0}</td>
-                <td id="${valorTotalCellId}">Calculando...</td>
+                <td>${valorUnitarioFormatado}</td>
+                <td>${valorTotalFormatado}</td>
                 <td><span title="Parcelas">${parcelasInfo}</span></td>
                 <td>
                   ${renderVencimentoParcelas(venda.vencimento_parcelas)}
@@ -162,31 +176,19 @@ function renderVendasTable(vendas) {
             </tr>
         `;
 
+        // Carrega o nome do usuário
         getUserName(venda.user_id).then(nome => {
             const el = document.getElementById(userIdCellId);
             if(el) el.textContent = nome;
         });
 
+        // Carrega o nome do produto
         getProductInfo(venda.produto_id).then(produto => {
             const produtoCell = document.getElementById(productIdCellId);
-            const valorTotalCell = document.getElementById(valorTotalCellId);
-
-            if (produto) {
-                if (produtoCell) produtoCell.textContent = produto.name;
-
-                const valorUnitario = parseFloat(produto.valor) || 0;
-                const quantidade = parseInt(venda.qtd_produto) || 0;
-                const valorTotal = valorUnitario * quantidade;
-
-                if (valorTotalCell) {
-                    valorTotalCell.textContent = new Intl.NumberFormat('pt-BR', {
-                        style: 'currency',
-                        currency: 'BRL'
-                    }).format(valorTotal);
-                }
-            } else {
-                if (produtoCell) produtoCell.textContent = 'Produto não encontrado';
-                if (valorTotalCell) valorTotalCell.textContent = 'R$ 0,00';
+            if (produto && produtoCell) {
+                produtoCell.textContent = produto.name;
+            } else if (produtoCell) {
+                produtoCell.textContent = 'Produto não encontrado';
             }
         });
     });
@@ -279,6 +281,7 @@ function renderParcelasInput(containerId, datas = [], valorTotal = 0) {
 
         container.appendChild(row);
 
+        // Aplicar máscaras
         IMask(document.getElementById(dataId), { mask: '00/00/0000' });
         IMask(document.getElementById(valorId), {
             mask: Number,
@@ -293,6 +296,67 @@ function renderParcelasInput(containerId, datas = [], valorTotal = 0) {
     }
 
     addValorParcelaListeners(container, valorTotal);
+}
+
+async function atualizarParcelasComValoresExistentes() {
+    const qtdProduto = parseInt(qtdProdutoInput.value) || 1;
+    const parcelas = Math.max(parseInt(parcelasInput.value) || 1, 1);
+    const valorUnitario = parseFloat(valorUnitarioInput.value) || 0;
+    const valorTotal = valorUnitario * qtdProduto;
+    valorTotalRef.value = valorTotal;
+
+    let datasAtuais = dados.vencimento_parcelas || [];
+    let valoresAtuais = [];
+
+    // Extrair datas e valores existentes
+    if (Array.isArray(datasAtuais)) {
+        valoresAtuais = datasAtuais.map(vp => parseFloat(vp.valor) || 0);
+        datasAtuais = datasAtuais.map(vp => vp.data || '');
+    }
+
+    // Ajustar arrays para o novo número de parcelas
+    while (datasAtuais.length < parcelas) datasAtuais.push('');
+    while (valoresAtuais.length < parcelas) valoresAtuais.push(0);
+
+    datasAtuais = datasAtuais.slice(0, parcelas);
+    valoresAtuais = valoresAtuais.slice(0, parcelas);
+
+    // Recalcular valores apenas se necessário
+    const somaValoresAtuais = valoresAtuais.reduce((acc, val) => acc + val, 0);
+    if (Math.abs(somaValoresAtuais - valorTotal) > 0.01) {
+        // Redistribuir valores proporcionalmente
+        const valorBase = Math.floor((valorTotal / parcelas) * 100) / 100;
+        let restante = valorTotal;
+
+        for (let i = 0; i < parcelas; i++) {
+            if (i === parcelas - 1) {
+                valoresAtuais[i] = restante;
+            } else {
+                valoresAtuais[i] = valorBase;
+                restante -= valorBase;
+            }
+        }
+    }
+
+    // Renderizar campos
+    renderParcelasInput('edit-venda-parcelas-container', datasAtuais, valorTotal);
+
+    // Preencher com valores existentes após um pequeno delay para garantir que os campos foram criados
+    setTimeout(() => {
+        preencherValoresParcelas(document.getElementById('edit-venda-parcelas-container'), valoresAtuais);
+    }, 100);
+}
+
+function preencherValoresParcelas(container, valoresParcelas) {
+    const inputs = container.querySelectorAll('.vencimento-valor');
+    inputs.forEach((input, index) => {
+        if (valoresParcelas[index] !== undefined) {
+            const valor = parseFloat(valoresParcelas[index].valor || valoresParcelas[index]);
+            if (!isNaN(valor)) {
+                input.value = valor.toFixed(2).replace('.', ',');
+            }
+        }
+    });
 }
 
 async function getProductInfoById(productId) {
@@ -433,328 +497,53 @@ async function initBuscaParcialUsuario(callback, inputId = 'usuario-busca', suge
     });
 }
 
-//Nova venda
-async function atualizarValorTotalNovaVenda(produtoId, qtdProduto) {
-    if (!produtoId) return 0;
+// EDITAR VENDA
 
-    try {
-        const produto = await getProductInfo(produtoId);
-        if (!produto) return 0;
-
-        const valorUnitario = parseFloat(produto.valor) || 0;
-        return valorUnitario * qtdProduto;
-    } catch {
-        return 0;
-    }
-}
-
-function getNovaVendaFormHTML() {
-    return `
-    <form id="form-nova-venda" autocomplete="off">
-        <div class="mb-3">
-            <label for="produto-busca" class="form-label">Produto</label>
-            <input type="text" class="form-control" id="produto-busca" placeholder="Buscar produto pelo nome" autocomplete="off">
-            <div id="produto-sugestoes" class="list-group mt-1"></div>
-        </div>
-
-        <div class="mb-3">
-            <label for="usuario-busca" class="form-label">Usuário</label>
-            <input type="text" class="form-control" id="usuario-busca" placeholder="Buscar usuário pelo nome" autocomplete="off">
-            <div id="usuario-sugestoes" class="list-group mt-1"></div>
-        </div>
-
-        <div class="mb-3">
-            <label for="qtd_produto" class="form-label">Quantidade</label>
-            <input type="number" class="form-control" id="qtd_produto" value="1" min="1">
-        </div>
-
-         <div class="mb-3">
-            <label for="valor_produto" class="form-label">Valor Unitário</label>
-            <input type="number" class="form-control" id="valor_produto" value="1" min="1">
-        </div>
-
-        <div class="mb-3">
-            <label for="parcelas" class="form-label">Parcelas</label>
-            <input type="number" class="form-control" id="parcelas" value="1" min="1">
-        </div>
-
-        <div class="mb-3">
-            <label for="pagamento" class="form-label">Forma de Pagamento</label>
-            <input type="text" class="form-control" id="pagamento" placeholder="Ex: Cartão de Crédito">
-        </div>
-
-        <div class="mb-3">
-            <label class="form-label">Vencimentos das Parcelas</label>
-            <div id="nova-venda-parcelas-container"></div>
-            <small class="text-muted">Informe as datas de vencimento das parcelas (dd/mm/yyyy)</small>
-        </div>
-    </form>
-    `;
-}
-
-function configurarEventosNovaVenda(modal, callbacks = {}) {
-    const selectedProdutoIdRef = { value: null };
-    const selectedUsuarioIdRef = { value: null };
-    const valorTotalRef = { value: 0 };
-
-    const qtdProdutoInput = document.getElementById('qtd_produto');
-    const parcelasInput = document.getElementById('parcelas');
-    const valorUnitarioInput = document.getElementById('valor_produto');
-
-    let valorUnitarioEditado = false;
-
-    valorUnitarioInput.addEventListener('input', () => {
-        valorUnitarioEditado = true;
-        atualizarTudo();
-    });
-
-    initBuscaParcialProduto(async (produtoId) => {
-        selectedProdutoIdRef.value = produtoId;
-        callbacks.onProdutoSelecionado?.(produtoId);
-
-        const produto = await getProductInfo(produtoId);
-        if (produto && !valorUnitarioEditado) {
-            valorUnitarioInput.value = parseFloat(produto.valor).toFixed(2); // usa ponto (.) para manter compatibilidade com parseFloat
-        }
-
-        atualizarTudo();
-    });
-
-    initBuscaParcialUsuario((usuarioId) => {
-        selectedUsuarioIdRef.value = usuarioId;
-        callbacks.onUsuarioSelecionado?.(usuarioId);
-    });
-
-    function atualizarTudo() {
-        const qtdProduto = parseInt(qtdProdutoInput.value) || 1;
-        const parcelas = Math.max(parseInt(parcelasInput.value) || 1, 1);
-        const valorUnitario = parseFloat(valorUnitarioInput.value) || 0;
-        const valorTotal = valorUnitario * qtdProduto;
-
-        valorTotalRef.value = valorTotal;
-
-        renderParcelasInput('nova-venda-parcelas-container', Array(parcelas).fill(''), valorTotal);
-
-        callbacks.onValorTotalAtualizado?.(valorTotal);
-    }
-
-    qtdProdutoInput.addEventListener('input', atualizarTudo);
-    parcelasInput.addEventListener('input', atualizarTudo);
-
-    atualizarTudo();
-
-    return {
-        getSelectedProdutoId: () => selectedProdutoIdRef.value,
-        getSelectedUsuarioId: () => selectedUsuarioIdRef.value,
-        getValorTotal: () => valorTotalRef.value,
-    };
-}
-
-
-function validarDadosVenda(produtoId, usuarioId, pagamento) {
-    if (!produtoId) {
-        alert('Selecione um produto válido.');
-        return false;
-    }
-    if (!usuarioId) {
-        alert('Selecione um usuário válido.');
-        return false;
-    }
-    if (!pagamento) {
-        alert('Selecione uma forma de pagamento.');
-        return false;
-    }
-    return true;
-}
-
-
-function obterDadosFormulario() {
-    const qtdProduto = parseInt(document.getElementById('qtd_produto').value) || 1;
-    const parcelas = parseInt(document.getElementById('parcelas').value) || 1;
-    const pagamento = document.getElementById('pagamento').value.trim();
-    const valorUnitarioProduto = parseFloat(document.getElementById('valor_produto').value.replace(',', '.')) || 0;
-
-    return { qtdProduto, parcelas, pagamento, valorUnitarioProduto };
-}
-
-
-function obterDadosParcelas() {
-    const container = document.getElementById('nova-venda-parcelas-container');
-    const datas = Array.from(container.querySelectorAll('.vencimento-data'))
-        .map(input => input.value.trim());
-    const valores = Array.from(container.querySelectorAll('.vencimento-valor'))
-        .map(input => parseFloat(input.value.trim().replace(',', '.')) || 0);
-
-    return { datas, valores };
-}
-
-
-async function calcularValorTotal(produtoId, qtdProduto) {
-    try {
-        const produtoInfo = await getProductInfo(produtoId);
-        const valorUnitario = parseFloat(produtoInfo?.valor) || 0;
-        return valorUnitario * qtdProduto;
-    } catch (error) {
-        console.error('Erro ao buscar informações do produto:', error);
-        return 0;
-    }
-}
-
-
-async function montarPayloadVenda(produtoId, usuarioId, dadosFormulario, dadosParcelas) {
-    const { qtdProduto, parcelas, pagamento, valorUnitarioProduto } = dadosFormulario;
-    const { datas, valores } = dadosParcelas;
-
-    const valorTotal = valorUnitarioProduto * qtdProduto;
-
-    const vencimento_parcelas = datas.map((data, index) => ({
-        data,
-        valor: valores[index]?.toString() ?? "0"
-    }));
-
-    return {
-        produto_id: produtoId,
-        user_id: usuarioId,
-        qtd_produto: qtdProduto,
-        parcelas,
-        vencimento_parcelas,
-        valor_total: valorTotal,
-        pagamento,
-        valor_unitario_produto: valorUnitarioProduto,
-    };
-}
-
-
-async function criarVenda(vendaPayload) {
-    try {
-        console.log('Payload sendo enviado:', vendaPayload);
-
-        const res = await api.post('/vendas/createVenda', vendaPayload);
-
-        // Debug completo da resposta
-        console.log('Resposta completa:', res);
-        console.log('Status:', res.status);
-        console.log('Data:', res.data);
-        console.log('Headers:', res.headers);
-
-        // Verificar se a requisição foi bem-sucedida
-        if (res.status >= 200 && res.status < 300) {
-            await getData();
-            return true;
-        }
-
-        // Se chegou aqui, algo deu errado
-        alert('Erro ao criar venda: Status ' + res.status);
-        return false;
-
-    } catch (err) {
-        // Debug completo do erro
-        console.error('=== DEBUG DO ERRO ===');
-        console.error('Erro completo:', err);
-        console.error('Erro message:', err.message);
-        console.error('Erro response:', err.response);
-
-        if (err.response) {
-            console.error('Status do erro:', err.response.status);
-            console.error('Data do erro:', err.response.data);
-            console.error('Headers do erro:', err.response.headers);
-        }
-
-        // Verificar se mesmo com "erro", a venda foi criada (status 2xx)
-        if (err.response && err.response.status >= 200 && err.response.status < 300) {
-            console.log('Venda criada com sucesso mesmo com erro!');
-            alert('Venda criada com sucesso!');
-            await getData();
-            return true;
-        }
-
-        alert('Erro ao criar venda: ' + (err.message || 'Erro desconhecido'));
-        return false;
-    }
-}
-
-// Função principal refatorada
-window.openNovaVendaModal = function() {
-    const modalEl = document.getElementById('modal-nova-venda');
-    const modal = new bootstrap.Modal(modalEl);
-
-    document.getElementById('modal-nova-venda-body').innerHTML = getNovaVendaFormHTML();
-
-    const stateRefs = configurarEventosNovaVenda(modal);
-
-    modal.show();
-
-    const btnSalvar = document.getElementById('btn-salvar-nova-venda');
-    if (btnSalvar) {
-        btnSalvar.onclick = async () => {
-            const produtoId = stateRefs.getSelectedProdutoId();
-            const usuarioId = stateRefs.getSelectedUsuarioId();
-
-            // Validar dados básicos
-            if (!validarDadosVenda(produtoId, usuarioId, document.getElementById('pagamento').value.trim())) {
-                return;
-            }
-
-            try {
-                // Obter dados do formulário
-                const dadosFormulario = obterDadosFormulario();
-                const dadosParcelas = obterDadosParcelas();
-                const vendaPayload = await montarPayloadVenda(produtoId, usuarioId, dadosFormulario, dadosParcelas);
-
-                // Criar venda
-                const sucesso = await criarVenda(vendaPayload);
-
-                if (sucesso) {
-                    modal.hide();
-                }
-            } catch (error) {
-                console.error('Erro no processo de criação da venda:', error);
-                alert('Erro inesperado ao criar venda.');
-            }
-        };
-    }
-};
-
-//editar venda
 function getEditVendaFormHTML(dados) {
     return `
-    <form id="form-edit-venda" autocomplete="off">
-        <div class="form-group">
-            <label for="produto-busca-edit">Produto:</label>
-            <input type="text" id="produto-busca-edit" class="form-control" placeholder="Digite o nome do produto">
-            <div id="produto-sugestoes-edit" class="autocomplete-dropdown"></div>
-        </div>
+  <form id="form-edit-venda" autocomplete="off">
+      <div class="form-group">
+          <label for="produto-busca-edit">Produto:</label>
+          <input type="text" id="produto-busca-edit" class="form-control" placeholder="Digite o nome do produto">
+          <div id="produto-sugestoes-edit" class="autocomplete-dropdown"></div>
+      </div>
 
-        <div class="form-group">
-            <label for="usuario-busca-edit">Usuário:</label>
-            <input type="text" id="usuario-busca-edit" class="form-control" placeholder="Digite o nome do usuário">
-            <div id="usuario-sugestoes-edit" class="autocomplete-dropdown"></div>
-        </div>
+      <div class="form-group">
+          <label for="usuario-busca-edit">Usuário:</label>
+          <input type="text" id="usuario-busca-edit" class="form-control" placeholder="Digite o nome do usuário">
+          <div id="usuario-sugestoes-edit" class="autocomplete-dropdown"></div>
+      </div>
 
-        <div class="mb-3">
-            <label for="qtd_produto_edit" class="form-label">Quantidade</label>
-            <input type="number" class="form-control" id="qtd_produto_edit" value="${dados.qtd_produto || 1}" min="1">
-        </div>
+      <div class="mb-3">
+          <label for="qtd_produto_edit" class="form-label">Quantidade</label>
+          <input type="number" class="form-control" id="qtd_produto_edit" value="${dados.qtd_produto || 1}" min="1">
+      </div>
 
-        <div class="mb-3">
-            <label for="parcelas_edit" class="form-label">Parcelas</label>
-            <input type="number" class="form-control" id="parcelas_edit" value="${dados.parcelas || 1}" min="1">
-        </div>
+      <div class="mb-3">
+          <label for="valor_unitario_edit" class="form-label">Valor Unitário</label>
+          <input type="number" class="form-control" id="valor_unitario_edit" value="" min="0" step="0.01">
+      </div>
 
-        <div class="mb-3">
-            <label for="pagamento_edit" class="form-label">Forma de Pagamento</label>
-            <input type="text" class="form-control" id="pagamento_edit" value="${dados.pagamento || ''}">
-        </div>
+      <div class="mb-3">
+          <label for="parcelas_edit" class="form-label">Parcelas</label>
+          <input type="number" class="form-control" id="parcelas_edit" value="${dados.parcelas || 1}" min="1">
+      </div>
 
-        <div class="mb-3">
-            <label class="form-label">Vencimentos das Parcelas</label>
-            <div id="edit-venda-parcelas-container"></div>
-            <small class="text-muted">Informe as datas de vencimento das parcelas (dd/mm/yyyy)</small>
-        </div>
-    </form>
-    `;
+      <div class="mb-3">
+          <label for="pagamento_edit" class="form-label">Forma de Pagamento</label>
+          <input type="text" class="form-control" id="pagamento_edit" value="${dados.pagamento || ''}">
+      </div>
+
+      <div class="mb-3">
+          <label class="form-label">Vencimentos das Parcelas</label>
+          <div id="edit-venda-parcelas-container"></div>
+          <small class="text-muted">Informe as datas de vencimento das parcelas (dd/mm/yyyy)</small>
+      </div>
+  </form>
+  `;
 }
 
+// Função para debugar o botão salvar
 async function configurarEventosEditVenda(modal, dados) {
     const selectedProdutoIdRef = { value: dados.produto_id };
     const selectedUsuarioIdRef = { value: dados.user_id };
@@ -765,10 +554,23 @@ async function configurarEventosEditVenda(modal, dados) {
     const pagamentoInput = document.getElementById('pagamento_edit');
     const produtoBuscaInput = document.getElementById('produto-busca-edit');
     const usuarioBuscaInput = document.getElementById('usuario-busca-edit');
-    const btnSalvar = document.getElementById('btn-salvar-edicao');
+    const valorUnitarioInput = document.getElementById('valor_unitario_edit');
     const containerParcelas = document.getElementById('edit-venda-parcelas-container');
 
-    // Preencher os campos com dados existentes
+    // VERIFICAR SE O BOTÃO EXISTE
+    const btnSalvar = document.getElementById('btn-salvar-edicao');
+    console.log('Botão salvar encontrado:', btnSalvar);
+
+    if (!btnSalvar) {
+        console.error('ERRO: Botão btn-salvar-edicao não encontrado!');
+        // Tentar encontrar outros botões possíveis
+        const botoesPossiveis = document.querySelectorAll('button[id*="salvar"], button[class*="salvar"]');
+        console.log('Botões possíveis encontrados:', botoesPossiveis);
+        return;
+    }
+
+    // ... resto do código de inicialização ...
+
     const produtoInfo = await getProductInfoById(dados.produto_id);
     const usuarioNome = await getUserName(dados.user_id);
 
@@ -778,10 +580,14 @@ async function configurarEventosEditVenda(modal, dados) {
     usuarioBuscaInput.value = usuarioNome || '';
     usuarioBuscaInput.placeholder = usuarioNome || 'Usuário não encontrado';
 
-    // Inicializa busca parcial reutilizando funções da criação
+    valorUnitarioInput.value = parseFloat(produtoInfo?.valor_unitario_produto || produtoInfo?.valor || 0).toFixed(2);
+
+    // Configurar autocomplete
     initBuscaParcialProduto((produtoId, produtoData) => {
         selectedProdutoIdRef.value = produtoId;
-        valorTotalRef.value = parseFloat(produtoData?.valor || 0) * (parseInt(qtdProdutoInput.value) || 1);
+        if (!valorUnitarioInput.dataset.editado) {
+            valorUnitarioInput.value = parseFloat(produtoData?.valor || 0).toFixed(2);
+        }
         atualizarParcelas();
     }, 'produto-busca-edit', 'produto-sugestoes-edit');
 
@@ -789,68 +595,163 @@ async function configurarEventosEditVenda(modal, dados) {
         selectedUsuarioIdRef.value = usuarioId;
     }, 'usuario-busca-edit', 'usuario-sugestoes-edit');
 
+    valorUnitarioInput.addEventListener('input', () => {
+        valorUnitarioInput.dataset.editado = "true";
+        atualizarParcelas();
+    });
 
-    // Atualiza parcelas baseado nos campos atuais
+    // Função para atualizar parcelas
     async function atualizarParcelas() {
         const qtdProduto = parseInt(qtdProdutoInput.value) || 1;
         const parcelas = Math.max(parseInt(parcelasInput.value) || 1, 1);
-
-        const produtoId = selectedProdutoIdRef.value;
-        const produtoInfo = await getProductInfoById(produtoId);
-        const valorUnitario = parseFloat(produtoInfo?.valor || 0);
+        const valorUnitario = parseFloat(valorUnitarioInput.value) || 0;
         const valorTotal = valorUnitario * qtdProduto;
         valorTotalRef.value = valorTotal;
 
-        // Preserva as datas atuais se já existirem
         let datasAtuais = dados.vencimento_parcelas || [];
-        while (datasAtuais.length < parcelas) datasAtuais.push('');
-        datasAtuais = datasAtuais.slice(0, parcelas);
+        let valoresAtuais = [];
 
+        // Extrair datas e valores existentes
+        if (Array.isArray(datasAtuais)) {
+            valoresAtuais = datasAtuais.map(vp => parseFloat(vp.valor) || 0);
+            datasAtuais = datasAtuais.map(vp => vp.data || '');
+        }
+
+        // Ajustar arrays para o novo número de parcelas
+        while (datasAtuais.length < parcelas) datasAtuais.push('');
+        while (valoresAtuais.length < parcelas) valoresAtuais.push(0);
+
+        datasAtuais = datasAtuais.slice(0, parcelas);
+        valoresAtuais = valoresAtuais.slice(0, parcelas);
+
+        // Recalcular valores apenas se necessário
+        const somaValoresAtuais = valoresAtuais.reduce((acc, val) => acc + val, 0);
+        if (Math.abs(somaValoresAtuais - valorTotal) > 0.01) {
+            const valorBase = Math.floor((valorTotal / parcelas) * 100) / 100;
+            let restante = valorTotal;
+
+            for (let i = 0; i < parcelas; i++) {
+                if (i === parcelas - 1) {
+                    valoresAtuais[i] = restante;
+                } else {
+                    valoresAtuais[i] = valorBase;
+                    restante -= valorBase;
+                }
+            }
+        }
+
+        // Renderizar campos
         renderParcelasInput('edit-venda-parcelas-container', datasAtuais, valorTotal);
+
+        // Preencher com valores existentes
+        setTimeout(() => {
+            const container = document.getElementById('edit-venda-parcelas-container');
+            const inputs = container.querySelectorAll('.vencimento-valor');
+            inputs.forEach((input, index) => {
+                if (valoresAtuais[index] !== undefined) {
+                    const valor = parseFloat(valoresAtuais[index]);
+                    if (!isNaN(valor)) {
+                        input.value = valor.toFixed(2).replace('.', ',');
+                    }
+                }
+            });
+        }, 100);
     }
 
     qtdProdutoInput.addEventListener('input', atualizarParcelas);
     parcelasInput.addEventListener('input', atualizarParcelas);
 
-    // Render inicial
     await atualizarParcelas();
 
-    if (btnSalvar) {
-        btnSalvar.onclick = async () => {
+    // CONFIGURAR EVENTO DO BOTÃO SALVAR COM DEBUGGING
+    console.log('Configurando evento do botão salvar...');
+
+    // Remover event listeners anteriores
+    btnSalvar.replaceWith(btnSalvar.cloneNode(true));
+    const btnSalvarNovo = document.getElementById('btn-salvar-edicao');
+
+    btnSalvarNovo.addEventListener('click', async (event) => {
+        console.log('Botão salvar clicado!');
+        event.preventDefault();
+
+        try {
+            // Coletar dados do formulário
             const qtdProduto = parseInt(qtdProdutoInput.value) || 1;
             const parcelas = parseInt(parcelasInput.value) || 1;
             const pagamento = pagamentoInput.value.trim();
-            const datas = Array.from(containerParcelas.querySelectorAll('.vencimento-data')).map(i => i.value.trim());
-            const valores = Array.from(containerParcelas.querySelectorAll('.vencimento-valor')).map(i => parseFloat(i.value.trim().replace(',', '.')) || 0);
-
             const produtoId = selectedProdutoIdRef.value;
             const usuarioId = selectedUsuarioIdRef.value;
+            const valorUnitario = parseFloat(valorUnitarioInput.value) || 0;
+            const valorTotal = valorUnitario * qtdProduto;
 
-            if (!validarDadosVenda(produtoId, usuarioId, pagamento)) return;
+            console.log('Dados coletados:', {
+                qtdProduto,
+                parcelas,
+                pagamento,
+                produtoId,
+                usuarioId,
+                valorUnitario,
+                valorTotal
+            });
 
+            // Validar dados básicos
+            if (!produtoId || !usuarioId) {
+                console.error('Produto ou usuário não selecionado');
+                alert('Por favor, selecione um produto e um usuário.');
+                return;
+            }
+
+            if (!pagamento) {
+                console.error('Forma de pagamento não informada');
+                alert('Por favor, informe a forma de pagamento.');
+                return;
+            }
+
+            // Coletar dados das parcelas
+            const datas = Array.from(containerParcelas.querySelectorAll('.vencimento-data')).map(i => i.value.trim());
+            const valores = Array.from(containerParcelas.querySelectorAll('.vencimento-valor')).map(i => {
+                const valor = parseFloat(i.value.trim().replace(',', '.'));
+                return isNaN(valor) ? 0 : valor;
+            });
+
+            console.log('Dados das parcelas:', { datas, valores });
+
+            // Validar parcelas
             if (parcelas !== datas.length || parcelas !== valores.length) {
+                console.error('Número de parcelas não corresponde');
                 alert('Número de parcelas não corresponde ao número de datas/valores informados.');
                 return;
             }
 
+            // Validar formato das datas
             for (const data of datas) {
-                if (!/\d{2}\/\d{2}\/\d{4}/.test(data)) {
+                if (!/^\d{2}\/\d{2}\/\d{4}$/.test(data)) {
+                    console.error('Data inválida:', data);
                     alert('Por favor, insira as datas no formato dd/mm/yyyy.');
                     return;
                 }
             }
 
+            // Validar valores das parcelas
             if (valores.some(v => isNaN(v) || v <= 0)) {
+                console.error('Valores inválidos:', valores);
                 alert('Insira valores válidos e positivos para todas as parcelas.');
                 return;
             }
 
-            const valorTotal = valorTotalRef.value;
+            // Validar soma das parcelas
             const somaParcelas = valores.reduce((acc, curr) => acc + curr, 0);
             if (Math.abs(somaParcelas - valorTotal) > 0.01) {
+                console.error(`Soma das parcelas (${somaParcelas}) !== valor total (${valorTotal})`);
                 alert(`A soma das parcelas (${somaParcelas.toFixed(2)}) deve ser igual ao valor total (${valorTotal.toFixed(2)}).`);
                 return;
             }
+
+            // Montar payload
+            const vencimento_parcelas = datas.map((data, i) => ({
+                data,
+                valor: valores[i].toFixed(2)
+            }));
 
             const vendaPayload = {
                 id: dados.id,
@@ -858,38 +759,106 @@ async function configurarEventosEditVenda(modal, dados) {
                 user_id: usuarioId,
                 qtd_produto: qtdProduto,
                 parcelas: parcelas,
-                vencimento_parcelas: datas,
-                valor_parcelas: valores,
                 pagamento: pagamento,
+                valor_unitario_produto: valorUnitario,
+                valor_total: valorTotal,
+                vencimento_parcelas,
             };
 
-            console.log('Payload sendo enviado:', vendaPayload);
-            await updateVenda(dados.id, vendaPayload);
-            modal.hide();
-        };
-    }
+            console.log('Payload para envio:', vendaPayload);
+
+            // Desabilitar botão para evitar duplo clique
+            btnSalvarNovo.disabled = true;
+            btnSalvarNovo.innerHTML = 'Salvando...';
+
+            // Enviar dados
+            const sucesso = await updateVenda(dados.id, vendaPayload);
+
+            if (sucesso) {
+                console.log('Venda atualizada com sucesso!');
+                modal.hide();
+            } else {
+                console.error('Falha ao atualizar venda');
+            }
+
+        } catch (error) {
+            console.error('Erro no evento do botão salvar:', error);
+            alert('Erro inesperado ao salvar. Verifique o console para mais detalhes.');
+        } finally {
+            // Reabilitar botão
+            btnSalvarNovo.disabled = false;
+            btnSalvarNovo.innerHTML = 'Salvar';
+        }
+    });
+
+    console.log('Evento do botão salvar configurado com sucesso!');
 }
 
+// Função melhorada para atualizar venda com mais debugging
 async function updateVenda(vendaId, vendaPayload) {
+    console.log('Iniciando updateVenda com:', { vendaId, vendaPayload });
+
     try {
+        console.log('Enviando requisição PATCH para:', `/vendas/updateVenda/${vendaId}`);
         const res = await api.patch(`/vendas/updateVenda/${vendaId}`, vendaPayload);
 
-        if (res.data.success) {
+        console.log('Resposta da API:', res);
+        console.log('Status da resposta:', res.status);
+        console.log('Dados da resposta:', res.data);
+
+        if (res.data && res.data.success) {
+            console.log('Venda atualizada com sucesso!');
             alert('Venda atualizada com sucesso!');
-            await getData();
+
+            // Recarregar dados se a função existir
+            if (typeof getData === 'function') {
+                console.log('Recarregando dados...');
+                await getData();
+            } else {
+                console.warn('Função getData não encontrada');
+            }
+
             return true;
         } else {
-            alert('Erro ao atualizar venda: ' + (res.data.message || 'Erro desconhecido'));
+            const errorMessage = res.data?.message || 'Erro desconhecido';
+            console.error('Erro na resposta da API:', errorMessage);
+            alert('Erro ao atualizar venda: ' + errorMessage);
             return false;
         }
     } catch (err) {
-        console.error('Erro ao atualizar venda:', err);
-        alert('Erro ao atualizar venda.');
+        console.error('Erro na requisição:', err);
+        console.error('Status do erro:', err.response?.status);
+        console.error('Dados do erro:', err.response?.data);
+
+        let errorMessage = 'Erro ao atualizar venda.';
+        if (err.response?.data?.message) {
+            errorMessage += ' ' + err.response.data.message;
+        }
+
+        alert(errorMessage);
         return false;
     }
 }
 
+// Função para validar dados da venda (caso não exista)
+function validarDadosVenda(produtoId, usuarioId, pagamento) {
+    if (!produtoId) {
+        alert('Por favor, selecione um produto.');
+        return false;
+    }
 
+    if (!usuarioId) {
+        alert('Por favor, selecione um usuário.');
+        return false;
+    }
+
+    if (!pagamento || pagamento.trim() === '') {
+        alert('Por favor, informe a forma de pagamento.');
+        return false;
+    }
+
+    return true;
+}
 
 // Torna a função global
 window.editVenda = async function(vendaId) {
@@ -921,7 +890,7 @@ window.deleteVenda = async function(vendaId) {
 
     try {
         const res = await api.delete(`/vendas/deleteVenda/${vendaId}`);
-
+        console.log(res.data)
         if (res.data.success) {
             alert('Venda excluída com sucesso!');
             await getData();
@@ -935,7 +904,8 @@ window.deleteVenda = async function(vendaId) {
 };
 
 window.addEventListener('load', () => {
-    console.log('API_BASE_URL:', API_BASE_URL);
+    window.console.log('=== FORÇANDO LOG ===');
+
     getData();
 
 });
@@ -1190,5 +1160,56 @@ async  function doRequestRegister(payload) {
 
 
 // novo produto
-function openModalNovoProduto() {
+
+
+
+function debugBootstrap(title, data) {
+    // Remove modal anterior, se existir
+    const existing = document.getElementById('debug-bootstrap-modal');
+    if (existing) existing.remove();
+
+    // Cria o container modal/painel
+    const modalHTML = `
+  <div class="modal fade show" id="debug-bootstrap-modal" tabindex="-1" style="display: block; background: rgba(0,0,0,0.5);" aria-modal="true" role="dialog">
+    <div class="modal-dialog modal-lg modal-dialog-scrollable" role="document" style="max-width: 90vw;">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">${title}</h5>
+          <button type="button" class="btn-close" aria-label="Fechar" id="debug-close-btn"></button>
+        </div>
+        <div class="modal-body">
+          <pre id="debug-content" style="white-space: pre-wrap; max-height: 60vh; overflow-y: auto; background: #f8f9fa; padding: 1rem; border-radius: .25rem;"></pre>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-primary" id="debug-copy-btn">Copiar conteúdo</button>
+          <button class="btn btn-secondary" id="debug-close-footer-btn">Fechar</button>
+        </div>
+      </div>
+    </div>
+  </div>`;
+
+    document.body.insertAdjacentHTML('beforeend', modalHTML);
+
+    // Preenche o conteúdo formatado
+    const contentEl = document.getElementById('debug-content');
+    try {
+        contentEl.textContent = JSON.stringify(data, null, 2);
+    } catch {
+        contentEl.textContent = String(data);
+    }
+
+    // Botão copiar
+    document.getElementById('debug-copy-btn').addEventListener('click', () => {
+        navigator.clipboard.writeText(contentEl.textContent)
+            .then(() => alert('Conteúdo copiado para a área de transferência!'))
+            .catch(() => alert('Falha ao copiar o conteúdo.'));
+    });
+
+    // Botões fechar
+    const closeModal = () => {
+        const modal = document.getElementById('debug-bootstrap-modal');
+        if (modal) modal.remove();
+    };
+    document.getElementById('debug-close-btn').addEventListener('click', closeModal);
+    document.getElementById('debug-close-footer-btn').addEventListener('click', closeModal);
 }

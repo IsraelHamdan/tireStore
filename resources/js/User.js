@@ -9,6 +9,8 @@ const api = axios.create({
     }
 });
 
+
+
 // Faz o login
 document.addEventListener('DOMContentLoaded', (e) => {
     e.preventDefault()

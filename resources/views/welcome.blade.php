@@ -3,8 +3,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="<KEY>" crossorigin="anonymous">
-    <link rel="stylesheet" href="{{ asset('./css/app.css') }}">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="<KEY>" crossorigin="anonymous">>
     <!-- Font Awesome 6 CDN -->
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
 
@@ -37,70 +36,180 @@
                     Gestão de Vendas
                 </h1>
                 <p class="text-muted">Visualize e gerencie todas as vendas do sistema</p>
-            </div>
-            <button class="btn btn-primary" id="btn-nova-venda" onclick="openNovaVendaModal()">
-                Nova Venda
-            </button>
-            <button class="btn btn-primary" id="btn-novo-usuário" onclick="openModalNovoUsuario()" data-bs-toggle="modal" data-bs-target="#modal-novo-usuario">
-                Novo usuário
-            </button>
-            <button class="btn btn-primary" id="btn-novo-produto" onclick="openModalNovoProduto()" data-bs-toggle="modal" data-bs-target="#modal-novo-produto">
-                Novo produto
-            </button>
+                <!DOCTYPE html>
+                <html lang="pt-BR">
+                <head>
+                    <meta charset="UTF-8">
+                    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                    <title>Gestão de Vendas</title>
+                    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+                    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+                </head>
+                <body>
+                            <div class="btn-group-vertical w-100" role="group">
+                                <button class="btn btn-primary mb-2" id="btn-nova-venda" onclick="openNovaVendaModal()">
+                                    <i class="fas fa-plus"></i> Nova Venda
+                                </button>
+                                <button class="btn btn-success mb-2" id="btn-listar-produtos" onclick="openListarProdutosModal()" data-bs-toggle="modal" data-bs-target="#modal-listar-produtos">
+                                    <i class="fas fa-box"></i> Listar Produtos
+                                </button>
+                                <button class="btn btn-info mb-2" id="btn-listar-usuarios" onclick="openListarUsuariosModal()" data-bs-toggle="modal" data-bs-target="#modal-listar-usuarios">
+                                    <i class="fas fa-users"></i> Listar Usuários
+                                </button>
+                                <button class="btn btn-warning mb-2" id="btn-novo-usuario" onclick="openModalNovoUsuario()" data-bs-toggle="modal" data-bs-target="#modal-novo-usuario">
+                                    <i class="fas fa-user-plus"></i> Novo Usuário
+                                </button>
+                                <button class="btn btn-secondary" id="btn-novo-produto" onclick="openModalNovoProduto()" data-bs-toggle="modal" data-bs-target="#modal-novo-produto">
+                                    <i class="fas fa-plus-circle"></i> Novo Produto
+                                </button>
+                            </div>
+                        </div>
+                    </div>
 
-            <div class="modal fade" id="modal-nova-venda" tabindex="-1" aria-labelledby="modalNovaVendaLabel" aria-hidden="true">
-                <div class="modal-dialog modal-lg modal-dialog-scrollable">
-                    <div class="modal-content">
-                        <div class="modal-header">
-                            <h5 class="modal-title" id="modalNovaVendaLabel">Nova Venda</h5>
-                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
+                    <!-- Modal Nova Venda -->
+                    <div class="modal fade" id="modal-nova-venda" tabindex="-1" aria-labelledby="modalNovaVendaLabel" aria-hidden="true">
+                        <div class="modal-dialog modal-lg modal-dialog-scrollable">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h5 class="modal-title" id="modalNovaVendaLabel">
+                                        <i class="fas fa-shopping-cart"></i> Nova Venda
+                                    </h5>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
+                                </div>
+                                <div class="modal-body" id="modal-nova-venda-body">
+                                    <!-- Conteúdo do modal via JS -->
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                                    <button type="button" class="btn btn-primary" id="btn-salvar-nova-venda">Salvar Venda</button>
+                                </div>
+                            </div>
                         </div>
-                        <div class="modal-body" id="modal-nova-venda-body">
-                            <!-- Conteúdo do modal via JS -->
+                    </div>
+
+                    <!-- Modal Novo Usuário -->
+                    <div class="modal fade" id="modal-novo-usuario" tabindex="-1" aria-labelledby="modalNovoUsuarioLabel" aria-hidden="true">
+                        <div class="modal-dialog modal-lg modal-dialog-scrollable">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h5 class="modal-title" id="modalNovoUsuarioLabel">
+                                        <i class="fas fa-user-plus"></i> Novo Usuário
+                                    </h5>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
+                                </div>
+                                <div class="modal-body" id="modal-novo-usuario-body">
+                                    <form id="form-novo-usuario">
+                                        <div class="mb-3">
+                                            <label for="usuario-name" class="form-label">Nome</label>
+                                            <input type="text" class="form-control" id="usuario-name" name="name" placeholder="Digite o nome" required>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label for="usuario-email" class="form-label">Email</label>
+                                            <input type="email" class="form-control" id="usuario-email" name="email" placeholder="Digite o email" required>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label for="usuario-cpf" class="form-label">CPF</label>
+                                            <input type="text" class="form-control" id="usuario-cpf" name="cpf" placeholder="Digite o CPF" required>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label for="usuario-password" class="form-label">Senha</label>
+                                            <input type="password" class="form-control" id="usuario-password" name="password" placeholder="Digite a senha" required>
+                                        </div>
+                                    </form>
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                                    <button type="button" class="btn btn-primary" id="btn-salvar-novo-usuario">Salvar Usuário</button>
+                                </div>
+                            </div>
                         </div>
-                        <div class="modal-footer">
-                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                            <button type="button" class="btn btn-primary" id="btn-salvar-nova-venda">Salvar Venda</button>
+                    </div>
+
+                    <!-- Modal Novo Produto -->
+                    <div class="modal fade" id="modal-novo-produto" tabindex="-1" aria-labelledby="modalNovoProdutoLabel" aria-hidden="true">
+                        <div class="modal-dialog modal-lg modal-dialog-scrollable">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h5 class="modal-title" id="modalNovoProdutoLabel">
+                                        <i class="fas fa-plus-circle"></i> Novo Produto
+                                    </h5>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
+                                </div>
+                                <div class="modal-body" id="modal-novo-produto-body">
+                                    <!-- Conteúdo do modal via JS -->
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                                    <button type="button" class="btn btn-primary" id="btn-salvar-novo-produto">Salvar Produto</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Modal Listar Produtos -->
+                    <div class="modal fade" id="modal-listar-produtos" tabindex="-1" aria-labelledby="modalListarProdutosLabel" aria-hidden="true">
+                        <div class="modal-dialog modal-xl modal-dialog-scrollable">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h5 class="modal-title" id="modalListarProdutosLabel">
+                                        <i class="fas fa-box"></i> Lista de Produtos
+                                    </h5>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
+                                </div>
+                                <div class="modal-body">
+                                    <div class="d-flex justify-content-between align-items-center mb-3">
+                                        <div>
+                                            <h6 class="mb-0" id="total-produtos">Total: 0 produtos</h6>
+                                        </div>
+                                        <div>
+                                            <button class="btn btn-success btn-sm" onclick="refreshProdutos()">
+                                                <i class="fas fa-sync-alt"></i> Atualizar
+                                            </button>
+                                        </div>
+                                    </div>
+                                    <div id="produtos-table-container">
+                                        <!-- Tabela de produtos será inserida aqui -->
+                                    </div>
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fechar</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Modal Listar Usuários -->
+                    <div class="modal fade" id="modal-listar-usuarios" tabindex="-1" aria-labelledby="modalListarUsuariosLabel" aria-hidden="true">
+                        <div class="modal-dialog modal-xl modal-dialog-scrollable">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h5 class="modal-title" id="modalListarUsuariosLabel">
+                                        <i class="fas fa-users"></i> Lista de Usuários
+                                    </h5>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
+                                </div>
+                                <div class="modal-body">
+                                    <div class="d-flex justify-content-between align-items-center mb-3">
+                                        <div>
+                                            <h6 class="mb-0" id="total-usuarios">Total: 0 usuários</h6>
+                                        </div>
+                                        <div>
+                                            <button class="btn btn-info btn-sm" onclick="refreshUsuarios()">
+                                                <i class="fas fa-sync-alt"></i> Atualizar
+                                            </button>
+                                        </div>
+                                    </div>
+                                    <div id="usuarios-table-container">
+                                        <!-- Tabela de usuários será inserida aqui -->
+                                    </div>
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fechar</button>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
-            </div>
-            <div class="modal fade" id="modal-novo-usuario" tabindex="-1" aria-labelledby="modalNovoUsuarioLabel" aria-hidden="true">
-                <div class="modal-dialog modal-lg modal-dialog-scrollable">
-                    <div class="modal-content">
-                        <div class="modal-header">
-                            <h5 class="modal-title" id="modalNovoUsuarioLabel">Novo Usuário</h5>
-                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
-                        </div>
-                        <div class="modal-body" id="modal-novo-usuario-body">
-                            <form id="form-novo-usuario">
-                                <div class="mb-3">
-                                    <label for="usuario-name" class="form-label">Nome</label>
-                                    <input type="text" class="form-control" id="usuario-name" name="name" placeholder="Digite o nome" required>
-                                </div>
-                                <div class="mb-3">
-                                    <label for="usuario-email" class="form-label">Email</label>
-                                    <input type="email" class="form-control" id="usuario-email" name="email" placeholder="Digite o email" required>
-                                </div>
-                                <div class="mb-3">
-                                    <label for="usuario-cpf" class="form-label">CPF</label>
-                                    <input type="text" class="form-control" id="usuario-cpf" name="cpf" placeholder="Digite o CPF" required>
-                                </div>
-                                <div class="mb-3">
-                                    <label for="usuario-password" class="form-label">Senha</label>
-                                    <input type="password" class="form-control" id="usuario-password" name="password" placeholder="Digite a senha" required>
-                                </div>
-                            </form>
-                        </div>
-                        <div class="modal-footer">
-                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                            <button type="button" class="btn btn-primary" id="btn-salvar-novo-usuario">Salvar Usuário</button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-        </div>
 
 
         <!-- Filtros -->
@@ -143,56 +252,6 @@
             </div>
         </div>
 
-        <!-- Estatísticas rápidas -->
-        {{--        <div class="row mb-4">--}}
-{{--            <div class="col-md-3">--}}
-{{--                <div class="card text-center">--}}
-{{--                    <div class="card-body">--}}
-{{--                        <h5 class="card-title text-primary">--}}
-{{--                            <i class="fas fa-shopping-cart"></i>--}}
-{{--                        </h5>--}}
-{{--                        <h4 class="card-text" id="total-vendas-count">0</h4>--}}
-{{--                        <p class="text-muted">Total de Vendas</p>--}}
-{{--                    </div>--}}
-{{--                </div>--}}
-{{--            </div>--}}
-{{--            <div class="col-md-3">--}}
-{{--                <div class="card text-center">--}}
-{{--                    <div class="card-body">--}}
-{{--                        <h5 class="card-title text-success">--}}
-{{--                            <i class="fas fa-dollar-sign"></i>--}}
-{{--                        </h5>--}}
-{{--                        <h4 class="card-text" id="total-valor">R$ 0,00</h4>--}}
-{{--                        <p class="text-muted">Valor Total</p>--}}
-{{--                    </div>--}}
-{{--                </div>--}}
-{{--            </div>--}}
-{{--            <div class="col-md-3">--}}
-{{--                <div class="card text-center">--}}
-{{--                    <div class="card-body">--}}
-{{--                        <h5 class="card-title text-info">--}}
-{{--                            <i class="fas fa-credit-card"></i>--}}
-{{--                        </h5>--}}
-{{--                        <h4 class="card-text" id="total-parcelas">0</h4>--}}
-{{--                        <p class="text-muted">Média de Parcelas</p>--}}
-{{--                    </div>--}}
-{{--                </div>--}}
-{{--            </div>--}}
-{{--            <div class="col-md-3">--}}
-{{--                <div class="card text-center">--}}
-{{--                    <div class="card-body">--}}
-{{--                        <h5 class="card-title text-warning">--}}
-{{--                            <i class="fas fa-calendar-alt"></i>--}}
-{{--                        </h5>--}}
-{{--                        <h4 class="card-text" id="vendas-hoje">0</h4>--}}
-{{--                        <p class="text-muted">Vendas Hoje</p>--}}
-{{--                    </div>--}}
-{{--                </div>--}}
-{{--            </div>--}}
-{{--        </div>--}}
-
-        <!-- Tabela de vendas -->
-
         <!-- Modal Edição Venda -->
         <div class="modal fade" id="modal-editar-venda" tabindex="-1" aria-labelledby="modal-editar-venda-label" aria-hidden="true">
             <div class="modal-dialog modal-lg modal-dialog-scrollable">
@@ -232,7 +291,7 @@
     </main>
 
 
-    @vite(['resources/js/vendas.js'])
+    @vite(['resources/js/vendas.js', 'resources/js/modals.js'])
     <script>
         window.ENV = {
             API_BASE_URL: "{{ url('/api') }}"
