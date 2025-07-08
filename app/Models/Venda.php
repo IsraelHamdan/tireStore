@@ -32,6 +32,7 @@ class Venda extends Model
         'vencimento_parcelas',
         'valor_total',
         'qtd_produto',
+        'valor_unitario_produto',
         'pagamento',
         'produto_id',
         'user_id',

@@ -40,6 +40,8 @@ Route::prefix('vendas')->group(function () {
     Route::get('/findByUser/{id}', [VendaController::class, 'findByUser']);
     Route::patch('/updateVenda/{id}', [VendaController::class, 'updateVenda']);
     Route::delete('/deleteVenda/{id}', [VendaController::class, 'deleteVenda']);
+    Route::get('/filterByDate/{data_inicio}/{data_fim}', [VendaController::class, 'filterByDate']);
+    Route::get('/filterByUser/{id}', [VendaController::class, 'filterByUser']);
 });
 
 

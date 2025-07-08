@@ -112,6 +112,7 @@ function renderVendasTable(vendas) {
                         <th>Usuário</th>
                         <th>Produto</th>
                         <th>Quantidade</th>
+                        <th>Valor Unitário</th>
                         <th>Valor Total</th>
                         <th>Parcelas</th>
                         <th>Vencimentos</th>
@@ -334,21 +335,6 @@ function addValorParcelaListeners(container, total) {
     });
 }
 
-async function atualizarValorTotalNovaVenda(produtoId, qtdProduto) {
-    if (!produtoId) return 0;
-
-    try {
-        const produto = await getProductInfo(produtoId);
-        if (!produto) return 0;
-
-        const valorUnitario = parseFloat(produto.valor) || 0;
-        return valorUnitario * qtdProduto;
-    } catch {
-        return 0;
-    }
-}
-
-
 async function initBuscaParcialProduto(callback, inputId = 'produto-busca', sugestoesId = 'produto-sugestoes') {
     const input = document.getElementById(inputId);
     const sugestoes = document.getElementById(sugestoesId);
@@ -448,6 +434,20 @@ async function initBuscaParcialUsuario(callback, inputId = 'usuario-busca', suge
 }
 
 //Nova venda
+async function atualizarValorTotalNovaVenda(produtoId, qtdProduto) {
+    if (!produtoId) return 0;
+
+    try {
+        const produto = await getProductInfo(produtoId);
+        if (!produto) return 0;
+
+        const valorUnitario = parseFloat(produto.valor) || 0;
+        return valorUnitario * qtdProduto;
+    } catch {
+        return 0;
+    }
+}
+
 function getNovaVendaFormHTML() {
     return `
     <form id="form-nova-venda" autocomplete="off">
@@ -466,6 +466,11 @@ function getNovaVendaFormHTML() {
         <div class="mb-3">
             <label for="qtd_produto" class="form-label">Quantidade</label>
             <input type="number" class="form-control" id="qtd_produto" value="1" min="1">
+        </div>
+
+         <div class="mb-3">
+            <label for="valor_produto" class="form-label">Valor Unitário</label>
+            <input type="number" class="form-control" id="valor_produto" value="1" min="1">
         </div>
 
         <div class="mb-3">
@@ -494,10 +499,24 @@ function configurarEventosNovaVenda(modal, callbacks = {}) {
 
     const qtdProdutoInput = document.getElementById('qtd_produto');
     const parcelasInput = document.getElementById('parcelas');
+    const valorUnitarioInput = document.getElementById('valor_produto');
 
-    initBuscaParcialProduto((produtoId) => {
+    let valorUnitarioEditado = false;
+
+    valorUnitarioInput.addEventListener('input', () => {
+        valorUnitarioEditado = true;
+        atualizarTudo();
+    });
+
+    initBuscaParcialProduto(async (produtoId) => {
         selectedProdutoIdRef.value = produtoId;
         callbacks.onProdutoSelecionado?.(produtoId);
+
+        const produto = await getProductInfo(produtoId);
+        if (produto && !valorUnitarioEditado) {
+            valorUnitarioInput.value = parseFloat(produto.valor).toFixed(2); // usa ponto (.) para manter compatibilidade com parseFloat
+        }
+
         atualizarTudo();
     });
 
@@ -506,11 +525,12 @@ function configurarEventosNovaVenda(modal, callbacks = {}) {
         callbacks.onUsuarioSelecionado?.(usuarioId);
     });
 
-    async function atualizarTudo() {
+    function atualizarTudo() {
         const qtdProduto = parseInt(qtdProdutoInput.value) || 1;
         const parcelas = Math.max(parseInt(parcelasInput.value) || 1, 1);
+        const valorUnitario = parseFloat(valorUnitarioInput.value) || 0;
+        const valorTotal = valorUnitario * qtdProduto;
 
-        const valorTotal = await atualizarValorTotalNovaVenda(selectedProdutoIdRef.value, qtdProduto);
         valorTotalRef.value = valorTotal;
 
         renderParcelasInput('nova-venda-parcelas-container', Array(parcelas).fill(''), valorTotal);
@@ -547,16 +567,17 @@ function validarDadosVenda(produtoId, usuarioId, pagamento) {
     return true;
 }
 
-// Função para obter os dados do formulário
+
 function obterDadosFormulario() {
     const qtdProduto = parseInt(document.getElementById('qtd_produto').value) || 1;
     const parcelas = parseInt(document.getElementById('parcelas').value) || 1;
     const pagamento = document.getElementById('pagamento').value.trim();
+    const valorUnitarioProduto = parseFloat(document.getElementById('valor_produto').value.replace(',', '.')) || 0;
 
-    return { qtdProduto, parcelas, pagamento };
+    return { qtdProduto, parcelas, pagamento, valorUnitarioProduto };
 }
 
-// Função para obter dados das parcelas
+
 function obterDadosParcelas() {
     const container = document.getElementById('nova-venda-parcelas-container');
     const datas = Array.from(container.querySelectorAll('.vencimento-data'))
@@ -567,7 +588,7 @@ function obterDadosParcelas() {
     return { datas, valores };
 }
 
-// Função para calcular o valor total
+
 async function calcularValorTotal(produtoId, qtdProduto) {
     try {
         const produtoInfo = await getProductInfo(produtoId);
@@ -579,14 +600,13 @@ async function calcularValorTotal(produtoId, qtdProduto) {
     }
 }
 
-// Função para montar o payload da venda
+
 async function montarPayloadVenda(produtoId, usuarioId, dadosFormulario, dadosParcelas) {
-    const { qtdProduto, parcelas, pagamento } = dadosFormulario;
+    const { qtdProduto, parcelas, pagamento, valorUnitarioProduto } = dadosFormulario;
     const { datas, valores } = dadosParcelas;
 
-    const valorTotal = await calcularValorTotal(produtoId, qtdProduto);
+    const valorTotal = valorUnitarioProduto * qtdProduto;
 
-    // Combina datas e valores em objetos {data, valor}
     const vencimento_parcelas = datas.map((data, index) => ({
         data,
         valor: valores[index]?.toString() ?? "0"
@@ -596,15 +616,15 @@ async function montarPayloadVenda(produtoId, usuarioId, dadosFormulario, dadosPa
         produto_id: produtoId,
         user_id: usuarioId,
         qtd_produto: qtdProduto,
-        parcelas: parcelas,
-        vencimento_parcelas, // formato correto!
+        parcelas,
+        vencimento_parcelas,
         valor_total: valorTotal,
-        pagamento: pagamento,
+        pagamento,
+        valor_unitario_produto: valorUnitarioProduto,
     };
 }
 
 
-// Função para criar a venda
 async function criarVenda(vendaPayload) {
     try {
         console.log('Payload sendo enviado:', vendaPayload);
@@ -679,8 +699,6 @@ window.openNovaVendaModal = function() {
                 // Obter dados do formulário
                 const dadosFormulario = obterDadosFormulario();
                 const dadosParcelas = obterDadosParcelas();
-
-                // Montar payload
                 const vendaPayload = await montarPayloadVenda(produtoId, usuarioId, dadosFormulario, dadosParcelas);
 
                 // Criar venda
@@ -919,10 +937,258 @@ window.deleteVenda = async function(vendaId) {
 window.addEventListener('load', () => {
     console.log('API_BASE_URL:', API_BASE_URL);
     getData();
+
 });
 
+document.addEventListener('DOMContentLoaded', () => {
+    configurarEventosFiltroVendas();
+});
 
 // Filtragem das vendas
 
 //Filtra por data
-async function
+async function filterByData(dataInicial, dataFinal) {
+    try {
+        const res = await api.get(`/vendas/filterByDate/${dataInicial}/${dataFinal}`);
+        const vendasFiltradas = res.data;
+        renderVendasTable(vendasFiltradas);
+    } catch (err) {
+        alert("Não há vendas desse produto")
+        alert("nenhuma venda encontrada neste intervalo")
+    }
+}
+
+// filtragem por nome
+function initFiltroUsuarioBuscaParcial() {
+    const input = document.getElementById('filter-user-name');
+    const sugestoes = document.getElementById('filter-user-sugestoes');
+
+    if (!input || !sugestoes) return;
+
+    let timeout;
+
+    input.addEventListener('input', async function () {
+        clearTimeout(timeout);
+        const query = this.value.trim();
+
+        if (query.length < 2) {
+            sugestoes.innerHTML = '';
+            return;
+        }
+
+        timeout = setTimeout(async () => {
+            try {
+                const res = await api.get(`/user/findByName/${encodeURIComponent(query)}`);
+                const usuarios = res.data;
+
+                sugestoes.innerHTML = '';
+
+                if (usuarios && usuarios.length > 0) {
+                    usuarios.forEach(usuario => {
+                        const item = document.createElement('div');
+                        item.className = 'list-group-item list-group-item-action';
+                        item.innerHTML = `
+                            <div class="d-flex w-100 justify-content-between">
+                                <h6 class="mb-1">${usuario.name}</h6>
+                                <small>${usuario.email}</small>
+                            </div>
+                        `;
+                        item.addEventListener('click', () => {
+                            input.value = usuario.name;
+                            sugestoes.innerHTML = '';
+                            filterByUser(usuario.id);
+                        });
+                        sugestoes.appendChild(item);
+                    });
+                }
+            } catch (err) {
+                console.error('Erro ao buscar usuários (filtro):', err);
+            }
+        }, 300);
+    });
+}
+
+function initFiltroProdutoBuscaParcial() {
+    const input = document.getElementById('filter-product-name');
+    const sugestoes = document.getElementById('filter-product-sugestoes');
+
+    if (!input || !sugestoes) return;
+
+    let timeout;
+
+    input.addEventListener('input', async function () {
+        clearTimeout(timeout);
+        const query = this.value.trim();
+
+        if (query.length < 2) {
+            sugestoes.innerHTML = '';
+            return;
+        }
+
+        timeout = setTimeout(async () => {
+            try {
+                const res = await api.get(`/product/findByName/${encodeURIComponent(query)}`);
+                const produtos = res.data;
+
+                sugestoes.innerHTML = '';
+
+                if (produtos && produtos.length > 0) {
+                    produtos.forEach(produto => {
+                        const item = document.createElement('div');
+                        item.className = 'list-group-item list-group-item-action';
+                        item.innerHTML = `
+                            <div class="d-flex w-100 justify-content-between">
+                                <h6 class="mb-1">${produto.name}</h6>
+                                <small>R$ ${parseFloat(produto.valor).toFixed(2).replace('.', ',')}</small>
+                            </div>
+                        `;
+                        item.addEventListener('click', () => {
+                            input.value = produto.name;
+                            sugestoes.innerHTML = '';
+                            filterByProduct(produto.id);
+                        });
+                        sugestoes.appendChild(item);
+                    });
+                }
+            } catch (err) {
+                console.error('Erro ao buscar produtos (filtro):', err);
+            }
+        }, 300);
+    });
+}
+
+
+async function filterByUser(userId) {
+    try {
+        const res = await api.get(`/vendas/filterByUser/${userId}`);
+        const vendasFiltradas = res.data;
+        renderVendasTable(vendasFiltradas);
+    } catch (err) {
+        alert("Não há vendas desse usuário")
+        getData()
+    }
+}
+
+async function filterByProduct(productId) {
+    try {
+        const res = await api.get(`/vendas/filterByProduct/${productId}`);
+        const vendasFiltradas = res.data;
+        renderVendasTable(vendasFiltradas);
+    }catch (err) {
+        console.error('Erro ao buscar vendas filtradas:', err);
+        getData()
+    }
+}
+//função pricipal da filtragem
+let selectedUserId = null;
+let selectedProductId = null;
+
+function filterVendas() {
+    const dataInicial = document.getElementById('filter-date-start').value;
+    const dataFinal = document.getElementById('filter-date-end').value;
+    const nomeUsuario = document.getElementById('filter-user-name').value.trim().toLowerCase();
+    const nomeProduto = document.getElementById('filter-product-name').value.trim().toLowerCase();
+
+    let vendasFiltradas = [...vendasData]; // começa com todas
+
+    if (dataInicial && dataFinal) {
+        const inicio = new Date(dataInicial);
+        const fim = new Date(dataFinal);
+        vendasFiltradas = vendasFiltradas.filter(venda => {
+            const dataVenda = new Date(venda.created_at);
+            return dataVenda >= inicio && dataVenda <= fim;
+        });
+    }
+
+    if (selectedUserId) {
+        vendasFiltradas = vendasFiltradas.filter(venda => venda.user_id === selectedUserId);
+    }
+
+    if (selectedProductId) {
+        vendasFiltradas = vendasFiltradas.filter(venda => venda.produto_id === selectedProductId);
+    }
+
+    // Filtros de texto como fallback (caso o id não tenha sido selecionado ainda)
+    if (nomeUsuario && !selectedUserId) {
+        vendasFiltradas = vendasFiltradas.filter(venda =>
+            venda.user_name?.toLowerCase().includes(nomeUsuario)
+        );
+    }
+
+    if (nomeProduto && !selectedProductId) {
+        vendasFiltradas = vendasFiltradas.filter(venda =>
+            venda.produto_nome?.toLowerCase().includes(nomeProduto)
+        );
+    }
+
+    renderVendasTable(vendasFiltradas);
+}
+
+
+function configurarEventosFiltroVendas() {
+    initBuscaParcialProduto((produtoId) => {
+        selectedProductId = produtoId;
+        filterVendas();
+    }, 'filter-product-name', 'filter-product-sugestoes');
+
+    initBuscaParcialUsuario((usuarioId) => {
+        selectedUserId = usuarioId;
+        filterVendas();
+    }, 'filter-user-name', 'filter-user-sugestoes');
+}
+
+
+
+// Criação de um novo usuário e de um novo produto
+
+// novo usuário
+function openModalNovoUsuario() {
+
+}
+
+function aplicarMascaraCPF(campo) {
+    campo.addEventListener('input', () => {
+        let valor = campo.value.replace(/\D/g, '');
+
+        if (valor.length > 11) valor = valor.slice(0, 11);
+
+        valor = valor.replace(/(\d{3})(\d)/, '$1.$2');
+        valor = valor.replace(/(\d{3})(\d)/, '$1.$2');
+        valor = valor.replace(/(\d{3})(\d{1,2})$/, '$1-$2');
+
+        campo.value = valor;
+    });
+}
+
+async  function doRequestRegister(payload) {
+    try {
+        console.log(payload);
+        const response = await api.post('/user/create', {
+            name:payload.name,
+            email:payload.email,
+            cpf:payload.cpf,
+            password:payload.password,
+        });
+        console.log(`Status da requisição ${response.status}`);
+        if(response.status === 201){
+            window.location.href = '/';
+        }
+
+    } catch (error) {
+        console.error(error);
+        if (error.response?.data?.message) {
+            console.error(error.response.data.message)
+        } else if (error.response?.data?.errors) {
+            const firstError = Object.values(error.response.data.errors)[0][0];
+            console.error(firstError)
+        } else {
+            console.error("Erro ao criar conta. Tente novamente.") ;
+        }
+    }
+
+}
+
+
+// novo produto
+function openModalNovoProduto() {
+}

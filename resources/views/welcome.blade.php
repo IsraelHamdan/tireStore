@@ -24,58 +24,7 @@
 
             <!-- Menu colapsável -->
             <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav me-auto">
-                    <!-- Usuário -->
-                    <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle fw-semibold px-3 py-2 mx-1 rounded"
-                           href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false"
-                           style="color: #1e1e1e; border: 2px solid transparent;"
-                           onmouseover="this.style.backgroundColor='#f0f0f0'; this.style.borderColor='#1e1e1e';"
-                           onmouseout="this.style.backgroundColor='transparent'; this.style.borderColor='transparent';">
-                            Gerenciar Usuários
-                        </a>
-                        <ul class="dropdown-menu border-2 shadow" style="background-color: #1e1e1e; border-color: #1e1e1e;">
 
-                            <li><a class="dropdown-item px-3 py-2" href="{{ route('users.front.busca') }}"
-                                   style="color: #fefefe; background-color: transparent;"
-                                   onmouseover="this.style.backgroundColor='#333333';"
-                                   onmouseout="this.style.backgroundColor='transparent';">Buscar Usuário</a></li>
-                        </ul>
-                    </li>
-                    <!-- Produto -->
-                    <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle fw-semibold px-3 py-2 mx-1 rounded"
-                           href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false"
-                           style="color: #1e1e1e; border: 2px solid transparent;"
-                           onmouseover="this.style.backgroundColor='#f0f0f0'; this.style.borderColor='#1e1e1e';"
-                           onmouseout="this.style.backgroundColor='transparent'; this.style.borderColor='transparent';">
-                            Produto
-                        </a>
-                        <ul class="dropdown-menu border-2 shadow" style="background-color: #1e1e1e; border-color: #1e1e1e;">
-
-                            <li><a class="dropdown-item px-3 py-2" href="{{ route('products.front.busca') }}"
-                                   style="color: #fefefe; background-color: transparent;"
-                                   onmouseover="this.style.backgroundColor='#333333';"
-                                   onmouseout="this.style.backgroundColor='transparent';">Gerenciar Produto</a></li>
-                        </ul>
-                    </li>
-                    <!-- Venda -->
-                    <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle fw-semibold px-3 py-2 mx-1 rounded"
-                           href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false"
-                           style="color: #1e1e1e; border: 2px solid transparent;"
-                           onmouseover="this.style.backgroundColor='#f0f0f0'; this.style.borderColor='#1e1e1e';"
-                           onmouseout="this.style.backgroundColor='transparent'; this.style.borderColor='transparent';">
-                            Venda
-                        </a>
-                        <ul class="dropdown-menu border-2 shadow" style="background-color: #1e1e1e; border-color: #1e1e1e;">
-                            <li><a class="dropdown-item px-3 py-2" href="{{ route('vendas.front.busca') }}"
-                                   style="color: #fefefe; background-color: transparent;"
-                                   onmouseover="this.style.backgroundColor='#333333';"
-                                   onmouseout="this.style.backgroundColor='transparent';">Buscar Venda</a></li>
-                        </ul>
-                    </li>
-                </ul>
             </div>
         </nav>
     </header>
@@ -91,6 +40,12 @@
             </div>
             <button class="btn btn-primary" id="btn-nova-venda" onclick="openNovaVendaModal()">
                 Nova Venda
+            </button>
+            <button class="btn btn-primary" id="btn-novo-usuário" onclick="openModalNovoUsuario()" data-bs-toggle="modal" data-bs-target="#modal-novo-usuario">
+                Novo usuário
+            </button>
+            <button class="btn btn-primary" id="btn-novo-produto" onclick="openModalNovoProduto()" data-bs-toggle="modal" data-bs-target="#modal-novo-produto">
+                Novo produto
             </button>
 
             <div class="modal fade" id="modal-nova-venda" tabindex="-1" aria-labelledby="modalNovaVendaLabel" aria-hidden="true">
@@ -110,6 +65,41 @@
                     </div>
                 </div>
             </div>
+            <div class="modal fade" id="modal-novo-usuario" tabindex="-1" aria-labelledby="modalNovoUsuarioLabel" aria-hidden="true">
+                <div class="modal-dialog modal-lg modal-dialog-scrollable">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="modalNovoUsuarioLabel">Novo Usuário</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
+                        </div>
+                        <div class="modal-body" id="modal-novo-usuario-body">
+                            <form id="form-novo-usuario">
+                                <div class="mb-3">
+                                    <label for="usuario-name" class="form-label">Nome</label>
+                                    <input type="text" class="form-control" id="usuario-name" name="name" placeholder="Digite o nome" required>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="usuario-email" class="form-label">Email</label>
+                                    <input type="email" class="form-control" id="usuario-email" name="email" placeholder="Digite o email" required>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="usuario-cpf" class="form-label">CPF</label>
+                                    <input type="text" class="form-control" id="usuario-cpf" name="cpf" placeholder="Digite o CPF" required>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="usuario-password" class="form-label">Senha</label>
+                                    <input type="password" class="form-control" id="usuario-password" name="password" placeholder="Digite a senha" required>
+                                </div>
+                            </form>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                            <button type="button" class="btn btn-primary" id="btn-salvar-novo-usuario">Salvar Usuário</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
         </div>
 
 
@@ -127,6 +117,18 @@
                                 <label class="form-label">Data Final</label>
                                 <input type="date" class="form-control" id="filter-date-end" onchange="filterVendas()">
                             </div>
+                            <div class="col-md-4">
+                                <label class="form-label">Usuário</label>
+                                <input type="text" class="form-control" id="filter-user-name" placeholder="Buscar usuário pelo nome" autocomplete="off">
+                                <div id="filter-user-sugestoes" class="list-group mt-1"></div>
+                            </div>
+
+                            <div class="col-md-4">
+                                <label class="form-label">Produto</label>
+                                <input type="text" class="form-control" id="filter-product-name" placeholder="Buscar produto pelo nome" autocomplete="off">
+                                <div id="filter-product-sugestoes" class="list-group mt-1"></div>
+                            </div>
+
                             <div class="col-md-4">
                                 <label class="form-label">&nbsp;</label>
                                 <div class="d-grid">

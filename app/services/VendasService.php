@@ -5,6 +5,7 @@ namespace App\services;
 use App\DTOs\CreateVendaDTO;
 use App\DTOs\Vendas\UpdateVendaDTO;
 use App\Models\Venda;
+use Carbon\Carbon;
 use Illuminate\Database\QueryException;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
@@ -32,14 +33,16 @@ class VendasService
             'produto_id' => "$ruleType|string|exists:produtos,id",
             'user_id' => "$ruleType|string|exists:users,id",
             'valor_total' => "$ruleType|numeric|min:0",
+            'valor_unitario_produto' => "$ruleType|numeric|min:0",
             'qtd_produto' => "$ruleType|integer|min:1",
             'pagamento' => "$ruleType|string",
             'parcelas' => "$ruleType|integer|min:0",
             'vencimento_parcelas' => $ruleType . '|array',
             'vencimento_parcelas.*.data' => 'required_with:vencimento_parcelas.*|date_format:d/m/Y',
             'vencimento_parcelas.*.valor' => 'required_with:vencimento_parcelas.*|numeric|min:0',
-
         ];
+
+
 
         $validator = Validator::make($data, $rules);
 
@@ -95,23 +98,23 @@ class VendasService
              * @return \Illuminate\Database\Eloquent\Collection Retorna uma coleção de vendas.
              * @throws NotFoundHttpException Se o usuário não for encontrado.
              */
-        public function updateVenda(string $id, UpdateVendaDTO $data): Venda
-        {
-            try {
-                $venda = $this->findById($id);
+    public function updateVenda(string $id, UpdateVendaDTO $data): Venda
+    {
+        try {
+            $venda = $this->findById($id);
 
-                $validatedData = $this->validateVenda($data);
-                if(empty($validatedData)) return $venda;
+            $validatedData = $this->validateVenda($data);
+            if(empty($validatedData)) return $venda;
 
-                $venda->update($validatedData);
-                return $venda;
-            } catch (QueryException $e) {
-                throw new HttpException($e->getCode(), "{$e->getMessage()}", "{$e->getPrevious()}");
+            $venda->update($validatedData);
+            return $venda;
+        } catch (QueryException $e) {
+            throw new HttpException($e->getCode(), "{$e->getMessage()}", "{$e->getPrevious()}");
 
-            } catch (NotFoundHttpException $e) {
-                throw new NotFoundHttpException("{$e->getMessage()}", $e->getCode());
-            }
+        } catch (NotFoundHttpException $e) {
+            throw new NotFoundHttpException("{$e->getMessage()}", $e->getCode());
         }
+    }
 
 
     public function findByUser(string $user_id): Collection
@@ -135,6 +138,42 @@ class VendasService
         }
     }
 
+    public function filterByDate(string $data_inicio, string $data_fim): array
+    {
+        try {
+            $start = Carbon::parse($data_inicio)->startOfDay();
+            $end = Carbon::parse($data_fim)->endOfDay();
 
+            $vendas = Venda::whereBetween('created_at', [$start, $end])->get();
 
+            if($vendas->isEmpty()) return [];
+            return $vendas->toArray();
+        } catch (QueryException $e) {
+            throw new HttpException($e->getCode(), $e->getMessage(), $e->getPrevious());
+
+        }
+    }
+
+    public function filterByUser(string $user_id): array
+    {
+        try {
+            $vendas = Venda::where('user_id', $user_id)->get();
+            if($vendas->isEmpty()) return [];
+            return $vendas->toArray();
+        } catch (QueryException $e) {
+            throw new HttpException($e->getCode(), $e->getMessage(), $e->getPrevious());
+        }
+    }
+
+    public function filterByProduct(string $produto_id): array
+    {
+        try {
+            $vendas = Venda::where('produto_id', $produto_id)->get();
+            if($vendas->isEmpty()) return [];
+            return $vendas->toArray();
+        } catch (QueryException $e) {
+            throw new HttpException($e->getCode(), $e->getMessage(), $e->getPrevious());
+
+        }
+    }
 }

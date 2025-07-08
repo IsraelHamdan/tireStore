@@ -30,6 +30,7 @@ class VendaController extends Controller
             user_id: $request->input('user_id'),
             valor_total: (float) $request->input('valor_total'),
             qtd_produto: (int) $request->input('qtd_produto'),
+            valor_unitario_produto: (float) $request->input('valor_unitario_produto'),
             pagamento: $request->input('pagamento'),
             parcelas: (int) $request->input('parcelas'),
             vencimento_parcelas: $request->input('vencimento_parcelas')
@@ -87,6 +88,7 @@ class VendaController extends Controller
             user_id: $request->input('user_id'),
             valor_total: (float) $request->input('valor_total'),
             qtd_produto: (int) $request->input('qtd_produto'),
+            valor_unitario_produto: (float) $request->input('valor_unitario_produto'),
             pagamento: $request->input('pagamento'),
             parcelas: (int) $request->input('parcelas'),
             vencimento_parcelas: $request->input('vencimento_parcelas')
@@ -101,6 +103,23 @@ class VendaController extends Controller
 
     }
 
+    public function filterByDate(Request $request, string $data_inicio, string $data_fim):JsonResponse
+    {
+        if (!$data_inicio || !$data_fim) {
+            return response()->json(['error' => 'Datas inválidas'], 400);
+        }
+        $vendas = $this->vendasService->filterByDate($data_inicio, $data_fim);
+        return response()->json($vendas, 200);
+    }
 
+    public function filterByUser(Request $request, string $user_id):JsonResponse
+    {
+        $vendas = $this->vendasService->filterByUser($user_id);
+        return response()->json($vendas, 200);
+    }
 
+    public function filterByProduct(Request $request, string $produto_id):JsonResponse
+    {
+        $vendas = $this->vendasService->filterByProduct($produto_id);
+    }
 }
